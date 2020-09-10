@@ -120,7 +120,7 @@ const useStyles = makeStyles((theme) => ({
 	},
 }));
 
-export default function ButtonAppBar() {
+export default function Header() {
 	const classes = useStyles();
 	const [menuOpen, toggleMenu] = React.useState(false);
 	const [scrollState, updateScrollState] = React.useState({

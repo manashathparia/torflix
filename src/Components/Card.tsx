@@ -46,6 +46,15 @@ const useStyles = makeStyles((theme) => ({
 	},
 }));
 
+interface CardProps {
+	image: string;
+	title: string;
+	rating: number;
+	slug: string;
+	favorites: Array<string>;
+	addFavorite: Function;
+}
+
 export default function Card({
 	image,
 	title,
@@ -53,14 +62,7 @@ export default function Card({
 	slug,
 	favorites,
 	addFavorite,
-}: {
-	image: string;
-	title: string;
-	rating: number;
-	slug: string;
-	favorites: Array<string>;
-	addFavorite: Function;
-}) {
+}: CardProps) {
 	const classes = useStyles();
 	return (
 		<div title={title} className={`${classes.height} ${classes.card}`}>
