@@ -1,4 +1,5 @@
 export interface Movie {
+	_id: string;
 	imdb_id: string;
 	title: string;
 	year: string;
@@ -32,7 +33,9 @@ const initial: MoviesState = {
 	currentlyViewing: {},
 };
 
+// constants
 export const ADD_MOVIES = "ADD_MOVIES";
+export const UPDATE_CURRENTLY_VIEWING = "UPDATE_CURRENTLY_VIEWING";
 
 export default function moviesReducer(
 	state = initial,
@@ -41,6 +44,10 @@ export default function moviesReducer(
 	switch (type) {
 		case ADD_MOVIES:
 			return { ...state, movies: [...state.movies, ...payload] };
+
+		case UPDATE_CURRENTLY_VIEWING:
+			return { ...state, currentlyViewing: payload };
+
 		default:
 			return state;
 	}

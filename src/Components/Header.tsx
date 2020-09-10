@@ -14,6 +14,7 @@ const useStyles = makeStyles((theme) => ({
 		flexGrow: 1,
 		position: "sticky",
 		top: 0,
+		zIndex: 9,
 	},
 	title: {
 		color: "white",
@@ -26,6 +27,7 @@ const useStyles = makeStyles((theme) => ({
 		boxShadow: "0 2px 43px -4px rgb(0 0 0 / 12%)",
 		position: "relative",
 		top: 0,
+		backgroundColor: "#cd2c2c",
 		[theme.breakpoints.up("sm")]: {
 			paddingLeft: "100px",
 			paddingRight: "100px",
