@@ -1,7 +1,10 @@
 import React from "react";
 import FavoriteBorder from "@material-ui/icons/FavoriteBorder";
+import Favorite from "@material-ui/icons/Favorite";
 import Star from "@material-ui/icons/Star";
 import makeStyles from "@material-ui/core/styles/makeStyles";
+import { Link } from "react-router-dom";
+import IconButton from "@material-ui/core/IconButton";
 
 const useStyles = makeStyles((theme) => ({
 	height: {
@@ -47,20 +50,34 @@ export default function Card({
 	image,
 	title,
 	rating,
+	slug,
+	favorites,
+	addFavorite,
 }: {
 	image: string;
 	title: string;
 	rating: number;
+	slug: string;
+	favorites: Array<string>;
+	addFavorite: Function;
 }) {
 	const classes = useStyles();
 	return (
 		<div title={title} className={`${classes.height} ${classes.card}`}>
-			<FavoriteBorder className={classes.loveIcon} />
-			<img
-				className={`${classes.height} ${classes.image}`}
-				src={image}
-				alt=""
-			/>
+			<IconButton
+				onClick={() => addFavorite(slug)}
+				className={classes.loveIcon}
+			>
+				{favorites.includes(slug) ? <Favorite /> : <FavoriteBorder />}
+			</IconButton>
+			<Link to={`/movie/${slug}`}>
+				<img
+					className={`${classes.height} ${classes.image}`}
+					src={image}
+					alt=""
+				/>
+			</Link>
+
 			<span className={classes.rating}>
 				<Star
 					style={{ color: "#f5c518", fontSize: 19, verticalAlign: "middle" }}

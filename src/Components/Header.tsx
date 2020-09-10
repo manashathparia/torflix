@@ -27,7 +27,6 @@ const useStyles = makeStyles((theme) => ({
 		boxShadow: "0 2px 43px -4px rgb(0 0 0 / 12%)",
 		position: "relative",
 		top: 0,
-		backgroundColor: "#cd2c2c",
 		[theme.breakpoints.up("sm")]: {
 			paddingLeft: "100px",
 			paddingRight: "100px",
@@ -149,7 +148,7 @@ export default function ButtonAppBar() {
 	return (
 		<>
 			<div className={classes.root}>
-				<AppBar position="static" className={classes.appBar}>
+				<AppBar position="static" className={classes.appBar} color="primary">
 					<Toolbar>
 						<IconButton
 							edge="start"
