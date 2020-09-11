@@ -32,7 +32,9 @@ export interface Movie extends ContentBase {
 	released: number;
 	trailer: string;
 	certification: string;
-	torrents: object;
+	torrents: {
+		[key: string]: any;
+	};
 	genres: Array<string>;
 }
 

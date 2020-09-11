@@ -11,6 +11,9 @@ function App() {
 			primary: {
 				main: "#cd2c2c",
 			},
+			secondary: {
+				main: "#ffffff",
+			},
 			text: {
 				primary: "#ffffff",
 			},
@@ -18,7 +21,7 @@ function App() {
 	});
 
 	return (
-		<div className="App" style={{ height: "auto" }}>
+		<div className="App" style={{ minHeight: "100vh" }}>
 			<MuiThemeProvider theme={theme}>
 				<Header />
 				<Content>

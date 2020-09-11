@@ -31,8 +31,10 @@ export default function MoviesPage() {
 		_updateFavorites([...favorites, id]);
 	};
 
+	// const handleCurrentlyViewing = (id) => dispatch(updateCurrentlyViewing())
+
 	return (
-		<div style={{ textAlign: "center" }}>
+		<div style={{ textAlign: "center", padding: "20px" }}>
 			<InfiniteScroll
 				next={loadMore}
 				style={{ overflowY: "hidden" }}

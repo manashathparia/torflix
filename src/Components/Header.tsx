@@ -8,6 +8,7 @@ import InputBase from "@material-ui/core/InputBase";
 import IconButton from "@material-ui/core/IconButton";
 import SearchIcon from "@material-ui/icons/Search";
 import MenuIcon from "@material-ui/icons/Menu";
+import { Link } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
 	root: {
@@ -160,9 +161,9 @@ export default function Header() {
 						>
 							<MenuIcon />
 						</IconButton>
-						<a href="/" className={classes.title}>
+						<Link to="/" className={classes.title}>
 							<Typography variant="h6">TORFLIX</Typography>
-						</a>
+						</Link>
 						<IconButton className={classes.mobileSearch}>
 							<SearchIcon />
 						</IconButton>
