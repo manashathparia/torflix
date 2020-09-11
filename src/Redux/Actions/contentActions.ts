@@ -1,14 +1,12 @@
 import { Action } from "redux";
 import { ThunkAction } from "redux-thunk";
-import { MoviesState, ADD_MOVIES } from "../Reducers/moviesReducer";
+import { Movie, ADD_MOVIES, UPDATE_CURRENTLY_VIEWING } from "../Reducers/types";
 
 export const getMovies = (
 	page: number = 1
 ): ThunkAction<void, null, unknown, Action<string>> => async (dispatch) => {
 	try {
-		const movies: Array<MoviesState> = await (
-			await fetch(`https://movies-v2.api-fetch.sh/movies/${page}`)
-		).json();
+		const movies: Array<Movie> = await (await fetch(`/movies/${page}`)).json();
 
 		dispatch(addMoviesAction(movies));
 	} catch (error) {
@@ -16,11 +14,14 @@ export const getMovies = (
 	}
 };
 
-const addMoviesAction = (
-	movies: Array<MoviesState>
-): { type: string; payload: Array<MoviesState> } => {
+const addMoviesAction = (movies: Array<Movie>) => {
 	return {
 		type: ADD_MOVIES,
 		payload: movies,
 	};
 };
+
+export const updateCurrentlyViewing = (movie: Movie) => ({
+	type: UPDATE_CURRENTLY_VIEWING,
+	payload: movie,
+});
