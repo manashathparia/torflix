@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { RouteComponentProps } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { MoviesState, Movie } from "../Redux/Reducers/types";
@@ -16,6 +16,7 @@ import {
 import Star from "@material-ui/icons/Star";
 import PlayCircleOutline from "@material-ui/icons/PlayCircleOutline";
 import FavoriteBorder from "@material-ui/icons/FavoriteBorder";
+import Webtorrent from "webtorrent";
 
 const useStyles = makeStyles({
 	paper: {
@@ -42,7 +43,26 @@ const useStyles = makeStyles({
 		right: "41px",
 		fontSize: "35px",
 	},
+	banner: { height: "550px", position: "fixed" },
 });
+
+declare global {
+	interface Window {
+		WEBTORRENT_ANNOUNCE: Array<Array<string>>;
+	}
+}
+
+window.WEBTORRENT_ANNOUNCE = [
+	["udp://tracker.openbittorrent.com:80"],
+	["udp://tracker.internetwarriors.net:1337"],
+	["udp://tracker.leechers-paradise.org:6969"],
+	["udp://tracker.coppersurfer.tk:6969"],
+	["udp://exodus.desync.com:6969"],
+	["wss://tracker.webtorrent.io"],
+	["wss://tracker.btorrent.xyz"],
+	["wss://tracker.openwebtorrent.com"],
+	["wss://tracker.fastcast.nz"],
+];
 
 function time_convert(num: number) {
 	const hours = Math.floor(num / 60);
@@ -55,6 +75,9 @@ export default function CurrentlyViewing({
 }: RouteComponentProps<{ id: string }>) {
 	const [quality, updateQuality] = useState("1080p");
 	const [movie, updateMovie] = useState<Movie | null>(null);
+	const [showVid, updateShowVid] = useState(false);
+	const [loading, toggleLoading] = useState(false);
+
 	const movies = useSelector(
 		(state: { content: MoviesState }) => state.content.movies
 	);
@@ -74,16 +97,32 @@ export default function CurrentlyViewing({
 		updateMovie(movie);
 	}, [match.params.id, movies]);
 
+	function stream(magnetUri: string) {
+		toggleLoading(true);
+		const client = new Webtorrent();
+		client.add(magnetUri, (torrent) => {
+			const file = torrent.files.find(function (file) {
+				return file.name.endsWith(".mp4");
+			});
+			updateShowVid(true);
+			file?.renderTo("video#video");
+		});
+		client.on("torrent", (t) => {
+			toggleLoading(false);
+		});
+		client.on("error", (err) => {
+			console.error("err", err);
+			toggleLoading(false);
+		});
+	}
+
 	const classes = useStyles();
+
 	return movie ? (
 		<Paper className={classes.paper}>
 			<Grid container>
 				<Grid sm={12} lg={4}>
-					<img
-						style={{ height: "550px", position: "fixed" }}
-						src={movie.images.banner}
-						alt=""
-					/>
+					<img src={movie.images.banner} alt="" />
 				</Grid>
 				<Grid sm={12} lg={8}>
 					<IconButton color="primary" className={classes.favIcon}>
@@ -119,47 +158,58 @@ export default function CurrentlyViewing({
 						{movie.synopsis}
 					</Typography>
 					<Divider style={{ backgroundColor: "#313030", margin: "10px 0" }} />
-					<Grid container>
-						<Grid lg={6}>
-							<div style={{ padding: "10px 0" }}>
-								<span
-									className={`${classes.qualityButtons} ${
-										quality === "1080p" ? classes.qualityButtonSelected : ""
-									}`}
-									onClick={() => updateQuality("1080p")}
-								>
-									1080p
-								</span>
-								<span
-									className={`${classes.qualityButtons} ${
-										quality === "720p" ? classes.qualityButtonSelected : ""
-									}`}
-									onClick={() => updateQuality("720p")}
-								>
-									720p
-								</span>
-							</div>
-							<Button
-								size="medium"
-								variant="outlined"
-								style={{
-									fontSize: "30px",
-									margin: "5px 0",
-									border: "2px solid",
-									color: "green",
-								}}
-							>
-								<PlayCircleOutline style={{ fontSize: "35px" }} />
-								WATCH
-							</Button>
+					{showVid ? (
+						<video height="250px" width="500px" id="video" />
+					) : (
+						<Grid container>
+							<Grid lg={6}>
+								<div style={{ padding: "10px 0" }}>
+									<span
+										className={`${classes.qualityButtons} ${
+											quality === "1080p" ? classes.qualityButtonSelected : ""
+										}`}
+										onClick={() => updateQuality("1080p")}
+									>
+										1080p
+									</span>
+									<span
+										className={`${classes.qualityButtons} ${
+											quality === "720p" ? classes.qualityButtonSelected : ""
+										}`}
+										onClick={() => updateQuality("720p")}
+									>
+										720p
+									</span>
+								</div>
+								{loading ? (
+									<div style={{ padding: "10px 30px" }}>
+										<CircularProgress />
+									</div>
+								) : (
+									<Button
+										size="medium"
+										variant="outlined"
+										style={{
+											fontSize: "30px",
+											margin: "5px 0",
+											border: "2px solid",
+											color: "green",
+										}}
+										onClick={() => stream(movie.torrents.en[quality].url)}
+									>
+										<PlayCircleOutline style={{ fontSize: "35px" }} />
+										WATCH
+									</Button>
+								)}
+							</Grid>
+							<Grid lg={6}>
+								<Typography variant="h6">Torrent Details</Typography>
+								Size: {movie.torrents.en[quality].filesize}
+								<div>Seeds: {movie.torrents.en[quality].seed}</div>
+								<div>Peers: {movie.torrents.en[quality].peer}</div>
+							</Grid>
 						</Grid>
-						<Grid lg={6}>
-							<Typography variant="h6">Torrent Details</Typography>
-							Size: {movie.torrents.en[quality].filesize}
-							<div>Seeds: {movie.torrents.en[quality].seed}</div>
-							<div>Peers: {movie.torrents.en[quality].peer}</div>
-						</Grid>
-					</Grid>
+					)}
 					<Divider style={{ backgroundColor: "#313030", margin: "10px 0" }} />
 					<div className={classes.padding}>
 						<Typography variant="h6">Trailer</Typography>
@@ -173,7 +223,6 @@ export default function CurrentlyViewing({
 					</div>
 				</Grid>
 			</Grid>
-			)
 		</Paper>
 	) : (
 		<CircularProgress style={{ display: "block", margin: "auto" }} />
