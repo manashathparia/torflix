@@ -18,10 +18,13 @@ import PlayCircleOutline from "@material-ui/icons/PlayCircleOutline";
 import FavoriteBorder from "@material-ui/icons/FavoriteBorder";
 import Webtorrent from "webtorrent";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
 	paper: {
 		background: "rgb(36 35 35)",
 		padding: "40px",
+		[theme.breakpoints.down("sm")]: {
+			padding: "20px",
+		},
 	},
 	padding: {
 		padding: "5px 0",
@@ -43,8 +46,24 @@ const useStyles = makeStyles({
 		right: "41px",
 		fontSize: "35px",
 	},
-	banner: { height: "550px", position: "fixed" },
-});
+	banner: {
+		height: "550px",
+		position: "fixed",
+		[theme.breakpoints.down("sm")]: {
+			position: "relative",
+			height: "auto",
+			width: "100%",
+		},
+	},
+	iframe: {
+		border: "none",
+		height: "250px",
+		width: "500px",
+		[theme.breakpoints.down("sm")]: {
+			width: "100%",
+		},
+	},
+}));
 
 declare global {
 	interface Window {
@@ -122,7 +141,7 @@ export default function CurrentlyViewing({
 		<Paper className={classes.paper}>
 			<Grid container>
 				<Grid sm={12} lg={4}>
-					<img src={movie.images.banner} alt="" />
+					<img className={classes.banner} src={movie.images.banner} alt="" />
 				</Grid>
 				<Grid sm={12} lg={8}>
 					<IconButton color="primary" className={classes.favIcon}>
@@ -159,10 +178,10 @@ export default function CurrentlyViewing({
 					</Typography>
 					<Divider style={{ backgroundColor: "#313030", margin: "10px 0" }} />
 					{showVid ? (
-						<video height="250px" width="500px" id="video" />
+						<video className={classes.iframe} autoPlay muted id="video" />
 					) : (
 						<Grid container>
-							<Grid lg={6}>
+							<Grid lg={6} xs={12} sm={12}>
 								<div style={{ padding: "10px 0" }}>
 									<span
 										className={`${classes.qualityButtons} ${
@@ -202,7 +221,7 @@ export default function CurrentlyViewing({
 									</Button>
 								)}
 							</Grid>
-							<Grid lg={6}>
+							<Grid lg={6} xs={12} sm={12}>
 								<Typography variant="h6">Torrent Details</Typography>
 								Size: {movie.torrents.en[quality].filesize}
 								<div>Seeds: {movie.torrents.en[quality].seed}</div>
@@ -214,9 +233,7 @@ export default function CurrentlyViewing({
 					<div className={classes.padding}>
 						<Typography variant="h6">Trailer</Typography>
 						<iframe
-							style={{ border: "none" }}
-							height="250px"
-							width="500px"
+							className={classes.iframe}
 							src={`https://youtube.com/embed/${movie.trailer.split("=")[1]}`}
 							title="trailer"
 						/>
