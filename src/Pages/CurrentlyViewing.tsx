@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { RouteComponentProps } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { MoviesState } from "../Redux/Reducers/types";
+import { MoviesState, Movie } from "../Redux/Reducers/types";
 import {
 	Paper,
 	Grid,
@@ -11,10 +11,10 @@ import {
 	Button,
 	Chip,
 	IconButton,
+	CircularProgress,
 } from "@material-ui/core";
 import Star from "@material-ui/icons/Star";
 import PlayCircleOutline from "@material-ui/icons/PlayCircleOutline";
-import WatchLater from "@material-ui/icons/WatchLaterOutlined";
 import FavoriteBorder from "@material-ui/icons/FavoriteBorder";
 
 const useStyles = makeStyles({
@@ -31,6 +31,11 @@ const useStyles = makeStyles({
 		borderRadius: "3px",
 		cursor: "pointer",
 		margin: 5,
+		color: "white",
+	},
+	qualityButtonSelected: {
+		borderColor: "#cd2c2c",
+		color: "#cd2c2c",
 	},
 	favIcon: {
 		position: "absolute",
@@ -48,20 +53,35 @@ function time_convert(num: number) {
 export default function CurrentlyViewing({
 	match,
 }: RouteComponentProps<{ id: string }>) {
-	const [quality, updateQuality] = useState(1080);
+	const [quality, updateQuality] = useState("1080p");
+	const [movie, updateMovie] = useState<Movie | null>(null);
 	const movies = useSelector(
-		({ content }: { content: MoviesState }) => content.movies
+		(state: { content: MoviesState }) => state.content.movies
 	);
-	const classes = useStyles();
-	const movie = movies.filter((movie) => movie._id === match.params.id)[0];
 
-	return (
+	useEffect(() => {
+		const movie = movies.filter((movie) => movie._id === match.params.id)[0];
+
+		const fetchMovie = async () => {
+			const movie = await (await fetch(`/movies/${match.params.id}`)).json();
+			updateMovie(movie);
+		};
+
+		if (!movie) {
+			fetchMovie();
+			return;
+		}
+		updateMovie(movie);
+	}, [match.params.id, movies]);
+
+	const classes = useStyles();
+	return movie ? (
 		<Paper className={classes.paper}>
 			<Grid container>
 				<Grid sm={12} lg={4}>
 					<img
 						style={{ height: "550px", position: "fixed" }}
-						src={movie?.images?.banner}
+						src={movie.images.banner}
 						alt=""
 					/>
 				</Grid>
@@ -70,9 +90,9 @@ export default function CurrentlyViewing({
 						<FavoriteBorder fontSize="large" />
 					</IconButton>
 					<Typography className={classes.padding} variant="h4">
-						{movie?.title}
+						{movie.title}
 					</Typography>
-					{movie?.genres.map((genre) => (
+					{movie.genres.map((genre) => (
 						<Chip
 							variant="outlined"
 							key={genre}
@@ -82,7 +102,7 @@ export default function CurrentlyViewing({
 						/>
 					))}
 					<div className={classes.padding}>
-						{movie?.year}, {time_convert(Number(movie?.runtime))}
+						{movie.year}, {time_convert(Number(movie.runtime))}
 					</div>
 					<div className={classes.padding}>
 						<Star
@@ -92,33 +112,29 @@ export default function CurrentlyViewing({
 								verticalAlign: "bottom",
 							}}
 						/>{" "}
-						{movie?.rating.percentage / 10}
+						{movie.rating.percentage / 10}
 					</div>
 
 					<Typography className={classes.padding} variant="body1">
-						{movie?.synopsis}
+						{movie.synopsis}
 					</Typography>
 					<Divider style={{ backgroundColor: "#313030", margin: "10px 0" }} />
 					<Grid container>
 						<Grid lg={6}>
 							<div style={{ padding: "10px 0" }}>
 								<span
-									style={{
-										borderColor: quality === 1080 ? "#cd2c2c" : "initial",
-										color: quality === 1080 ? "#cd2c2c" : "white",
-									}}
-									className={classes.qualityButtons}
-									onClick={() => updateQuality(1080)}
+									className={`${classes.qualityButtons} ${
+										quality === "1080p" ? classes.qualityButtonSelected : ""
+									}`}
+									onClick={() => updateQuality("1080p")}
 								>
 									1080p
 								</span>
 								<span
-									style={{
-										borderColor: quality === 720 ? "#cd2c2c" : "initial",
-										color: quality === 720 ? "#cd2c2c" : "white",
-									}}
-									className={classes.qualityButtons}
-									onClick={() => updateQuality(720)}
+									className={`${classes.qualityButtons} ${
+										quality === "720p" ? classes.qualityButtonSelected : ""
+									}`}
+									onClick={() => updateQuality("720p")}
 								>
 									720p
 								</span>
@@ -139,9 +155,9 @@ export default function CurrentlyViewing({
 						</Grid>
 						<Grid lg={6}>
 							<Typography variant="h6">Torrent Details</Typography>
-							Size: {`${movie?.torrents.en[`${quality}p`].filesize}`}
-							<div>Seeds: {`${movie?.torrents.en[`${quality}p`].seed}`}</div>
-							<div>Peers: {`${movie?.torrents.en[`${quality}p`].peer}`}</div>
+							Size: {movie.torrents.en[quality].filesize}
+							<div>Seeds: {movie.torrents.en[quality].seed}</div>
+							<div>Peers: {movie.torrents.en[quality].peer}</div>
 						</Grid>
 					</Grid>
 					<Divider style={{ backgroundColor: "#313030", margin: "10px 0" }} />
@@ -151,12 +167,15 @@ export default function CurrentlyViewing({
 							style={{ border: "none" }}
 							height="250px"
 							width="500px"
-							src={`https://youtube.com/embed/${movie?.trailer.split("=")[1]}`}
+							src={`https://youtube.com/embed/${movie.trailer.split("=")[1]}`}
 							title="trailer"
 						/>
 					</div>
 				</Grid>
 			</Grid>
+			)
 		</Paper>
+	) : (
+		<CircularProgress style={{ display: "block", margin: "auto" }} />
 	);
 }

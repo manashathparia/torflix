@@ -6,7 +6,9 @@ export const getMovies = (
 	page: number = 1
 ): ThunkAction<void, null, unknown, Action<string>> => async (dispatch) => {
 	try {
-		const movies: Array<Movie> = await (await fetch(`/movies/${page}`)).json();
+		const movies: Array<Movie> = await (
+			await fetch(`/movies/?page=${page}`)
+		).json();
 
 		dispatch(addMoviesAction(movies));
 	} catch (error) {
