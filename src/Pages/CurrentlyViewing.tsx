@@ -105,7 +105,9 @@ export default function CurrentlyViewing({
 		const movie = movies.filter((movie) => movie._id === match.params.id)[0];
 
 		const fetchMovie = async () => {
-			const movie = await (await fetch(`/movies/${match.params.id}`)).json();
+			const movie = await (
+				await fetch(`https://torflix.vercel.app/api/movies/${match.params.id}`)
+			).json();
 			updateMovie(movie);
 		};
 
@@ -181,7 +183,7 @@ export default function CurrentlyViewing({
 						<video className={classes.iframe} autoPlay muted id="video" />
 					) : (
 						<Grid container>
-							<Grid lg={6} xs={12} sm={12}>
+							<Grid item lg={6} xs={12} sm={12}>
 								<div style={{ padding: "10px 0" }}>
 									<span
 										className={`${classes.qualityButtons} ${
@@ -221,7 +223,7 @@ export default function CurrentlyViewing({
 									</Button>
 								)}
 							</Grid>
-							<Grid lg={6} xs={12} sm={12}>
+							<Grid item lg={6} xs={12} sm={12}>
 								<Typography variant="h6">Torrent Details</Typography>
 								Size: {movie.torrents.en[quality].filesize}
 								<div>Seeds: {movie.torrents.en[quality].seed}</div>

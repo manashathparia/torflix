@@ -1,6 +1,6 @@
 {
-	"name": "streamer",
-	"version": "0.1.0",
+	"name": "torflix",
+	"version": "0.2.0",
 	"private": true,
 	"dependencies": {
 		"@material-ui/core": "^4.11.0",
@@ -50,6 +50,5 @@
 	"devDependencies": {
 		"@types/react-redux": "^7.1.9",
 		"@types/react-router-dom": "^5.1.5"
-	},
-	"proxy": "https://torflix.vercel.app/api"
+	}
 }

@@ -7,7 +7,7 @@ export const getMovies = (
 ): ThunkAction<void, null, unknown, Action<string>> => async (dispatch) => {
 	try {
 		const movies: Array<Movie> = await (
-			await fetch(`/movies/?page=${page}`)
+			await fetch(`https://torflix.vercel.app/api/movies/?page=${page}`)
 		).json();
 
 		dispatch(addMoviesAction(movies));
