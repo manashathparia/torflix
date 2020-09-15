@@ -168,7 +168,11 @@ export default function CurrentlyViewing({
 		<Paper className={classes.paper}>
 			<Grid container>
 				<Grid item sm={12} lg={4}>
-					<img className={classes.banner} src={movie.images.banner} alt="" />
+					<img
+						className={classes.banner}
+						src={movie.images.banner.replace("http", "https")}
+						alt=""
+					/>
 				</Grid>
 				<Grid item sm={12} lg={8}>
 					<IconButton color="primary" className={classes.favIcon}>

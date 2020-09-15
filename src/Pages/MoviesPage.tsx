@@ -59,7 +59,7 @@ export default function MoviesPage() {
 						rating={movie.rating.percentage / 10}
 						title={movie.title}
 						key={movie._id}
-						image={movie.images.poster}
+						image={movie.images.poster.replace("http", "https")}
 					/>
 				))}
 			</InfiniteScroll>
