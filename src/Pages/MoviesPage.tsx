@@ -28,7 +28,7 @@ export default function MoviesPage() {
 	const updateFavorites = (id: string) => dispatch(handleFavMovies(id));
 
 	return (
-		<div style={{ textAlign: "center" }}>
+		<div style={{ textAlign: "center", paddingTop: 10 }}>
 			<InfiniteScroll
 				next={loadMore}
 				style={{ overflowY: "hidden" }}

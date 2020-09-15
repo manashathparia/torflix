@@ -18,6 +18,7 @@ function App() {
 			},
 			text: {
 				primary: "#ffffff",
+				secondary: "#221f1f",
 			},
 		},
 	});

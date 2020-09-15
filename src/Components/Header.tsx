@@ -9,6 +9,7 @@ import IconButton from "@material-ui/core/IconButton";
 import SearchIcon from "@material-ui/icons/Search";
 import MenuIcon from "@material-ui/icons/Menu";
 import { Link } from "react-router-dom";
+import Menu from "./Menu";
 
 const useStyles = makeStyles((theme) => ({
 	root: {
@@ -191,6 +192,7 @@ export default function Header() {
 					</Toolbar>
 				</AppBar>
 			</div>
+			<Menu onClose={() => toggleMenu(!menuOpen)} open={menuOpen} />
 		</>
 	);
 }
