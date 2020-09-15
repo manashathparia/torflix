@@ -1,26 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { RouteComponentProps } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Movie } from "../Redux/Reducers/types";
-import {
-	Paper,
-	Grid,
-	Typography,
-	makeStyles,
-	Divider,
-	Button,
-	Chip,
-	IconButton,
-	Snackbar,
-	CircularProgress,
-} from "@material-ui/core";
+import Paper from "@material-ui/core/Paper";
+import Grid from "@material-ui/core/Grid";
+import Typography from "@material-ui/core/Typography";
+import Divider from "@material-ui/core/Divider";
+import Button from "@material-ui/core/Button";
+import Chip from "@material-ui/core/Chip";
+import IconButton from "@material-ui/core/IconButton";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import makeStyles from "@material-ui/core/styles/makeStyles";
 import Star from "@material-ui/icons/Star";
 import PlayCircleOutline from "@material-ui/icons/PlayCircleOutline";
 import FavoriteBorder from "@material-ui/icons/FavoriteBorder";
+import Favorite from "@material-ui/icons/Favorite";
 import Webtorrent from "webtorrent";
 import prettierBytes from "prettier-bytes";
-import { formatDistance } from "date-fns";
 import { RootState } from "../Redux/Reducers";
+import { handleFavMovies } from "../Redux/Actions/contentActions";
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
@@ -49,6 +47,10 @@ const useStyles = makeStyles((theme) => ({
 		position: "absolute",
 		right: "41px",
 		fontSize: "35px",
+		[theme.breakpoints.down("sm")]: {
+			position: "relative",
+			right: 0,
+		},
 	},
 	banner: {
 		height: "550px",
@@ -111,7 +113,10 @@ export default function CurrentlyViewing({
 		status: "Loading torrent",
 	});
 
-	const movies = useSelector((state: RootState) => state.content.movies);
+	const { movies, favorites } = useSelector(
+		(state: RootState) => state.content
+	);
+	const dispatch = useDispatch();
 
 	useEffect(() => {
 		const movie = movies.filter((movie) => movie._id === match.params.id)[0];
@@ -162,6 +167,8 @@ export default function CurrentlyViewing({
 		});
 	}
 
+	const toggleFav = (id: string) => dispatch(handleFavMovies(id));
+
 	const classes = useStyles();
 
 	return movie ? (
@@ -175,8 +182,16 @@ export default function CurrentlyViewing({
 					/>
 				</Grid>
 				<Grid item sm={12} lg={8}>
-					<IconButton color="primary" className={classes.favIcon}>
-						<FavoriteBorder fontSize="large" />
+					<IconButton
+						color="primary"
+						onClick={() => toggleFav(movie._id)}
+						className={classes.favIcon}
+					>
+						{favorites.includes(movie._id) ? (
+							<Favorite fontSize="large" />
+						) : (
+							<FavoriteBorder fontSize="large" />
+						)}
 					</IconButton>
 					<Typography className={classes.padding} variant="h4">
 						{movie.title}
@@ -185,7 +200,7 @@ export default function CurrentlyViewing({
 						<Chip
 							variant="outlined"
 							key={genre}
-							style={{ margin: "0 2px" }}
+							style={{ margin: "2px" }}
 							color="secondary"
 							label={genre}
 						/>
@@ -283,20 +298,6 @@ export default function CurrentlyViewing({
 					</div>
 				</Grid>
 			</Grid>
-
-			{/* <Snackbar
-				open={torrentInfo.show}
-				anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-				message={`
-				Torrent: D:${prettierBytes(torrentInfo.download)}/s 
-				U:${prettierBytes(torrentInfo.upload)}/s 
-				P:${(100 * torrentInfo.progress).toFixed(1)}% 
-				ETA: ${
-					torrentInfo.remaining !== Infinity
-						? formatDistance(torrentInfo.remaining, 0, { includeSeconds: true })
-						: "More than your lifespan remaining"
-				}`}
-			/> */}
 		</Paper>
 	) : (
 		<>

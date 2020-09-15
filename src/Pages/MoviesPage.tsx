@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import InfiniteScroll from "react-infinite-scroll-component";
 import Loader from "@material-ui/core/CircularProgress";
-import { getMovies } from "../Redux/Actions/contentActions";
+import { getMovies, handleFavMovies } from "../Redux/Actions/contentActions";
 import { RootState } from "../Redux/Reducers";
 import Card from "../Components/Card";
 import { NEXT_PAGE } from "../Redux/Reducers/types";
 
 export default function MoviesPage() {
-	const [favorites, _updateFavorites] = useState<string[]>([]);
 	const dispatch = useDispatch();
-	const { movies, page } = useSelector((state: RootState) => state.content);
+	const { movies, page, favorites } = useSelector(
+		(state: RootState) => state.content
+	);
 
 	useEffect(() => {
 		if (movies.length > 0) return;
 		dispatch(getMovies(1));
-	}, [dispatch]);
+	}, [dispatch, movies]);
 
 	const nextPage = () => dispatch({ type: NEXT_PAGE });
 
@@ -24,18 +25,7 @@ export default function MoviesPage() {
 		dispatch(getMovies(page + 1));
 	};
 
-	const updateFavorites = (id: string) => {
-		if (favorites.includes(id)) {
-			const arr = [...favorites];
-			const i = arr.indexOf(id);
-			arr.splice(i, 1);
-			_updateFavorites(arr);
-			return;
-		}
-		_updateFavorites([...favorites, id]);
-	};
-
-	// const handleCurrentlyViewing = (id) => dispatch(updateCurrentlyViewing())
+	const updateFavorites = (id: string) => dispatch(handleFavMovies(id));
 
 	return (
 		<div style={{ textAlign: "center" }}>

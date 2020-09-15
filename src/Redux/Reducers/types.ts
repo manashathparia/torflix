@@ -2,6 +2,7 @@
 export const ADD_MOVIES = "ADD_MOVIES";
 export const UPDATE_CURRENTLY_VIEWING = "UPDATE_CURRENTLY_VIEWING";
 export const NEXT_PAGE = "NEXT_PAGE";
+export const TOGGLE_FAVORITE_MOVIE = "TOGGLE_FAVORITE_MOVIE";
 
 interface ContentBase {
 	_id: string;
@@ -43,4 +44,5 @@ export interface MoviesState {
 	movies: Array<Movie>;
 	currentlyViewing: Movie | object;
 	page: number;
+	favorites: Array<string>;
 }

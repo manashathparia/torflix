@@ -1,6 +1,12 @@
 import { Action } from "redux";
 import { ThunkAction } from "redux-thunk";
-import { Movie, ADD_MOVIES, UPDATE_CURRENTLY_VIEWING } from "../Reducers/types";
+import {
+	Movie,
+	ADD_MOVIES,
+	UPDATE_CURRENTLY_VIEWING,
+	TOGGLE_FAVORITE_MOVIE,
+} from "../Reducers/types";
+import { RootState } from "../Reducers";
 
 export const getMovies = (
 	page: number = 1
@@ -27,3 +33,42 @@ export const updateCurrentlyViewing = (movie: Movie) => ({
 	type: UPDATE_CURRENTLY_VIEWING,
 	payload: movie,
 });
+
+export const handleFavMovies = (
+	id: string
+): ThunkAction<void, RootState, unknown, Action<string>> => async (
+	dispatch,
+	getState
+) => {
+	const {
+		content: { favorites },
+	} = getState();
+
+	if (favorites.includes(id)) {
+		const _fav = [...favorites];
+		_fav.splice(_fav.indexOf(id), 1);
+		dispatch(favMovieAction(_fav));
+		return localStorage.setItem("favMovies", JSON.stringify(_fav));
+	}
+	const _fav = [...favorites, id];
+	dispatch(favMovieAction(_fav));
+	localStorage.setItem("favMovies", JSON.stringify(_fav));
+};
+
+const favMovieAction = (fav: Array<string>) => ({
+	type: TOGGLE_FAVORITE_MOVIE,
+	payload: fav,
+});
+
+export const loadFavMovies = (): ThunkAction<
+	void,
+	RootState,
+	unknown,
+	Action<string>
+> => (dispatch) => {
+	const favMovies = localStorage.getItem("favMovies");
+	if (favMovies) {
+		const _favMovies = JSON.parse(favMovies || "[]");
+		dispatch(favMovieAction(_favMovies));
+	}
+};
