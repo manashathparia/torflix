@@ -173,7 +173,7 @@ export default function Header() {
 									<SearchIcon />
 								</div>
 								<InputBase
-									placeholder="Search for Movies"
+									placeholder="Search for Movies or Shows"
 									classes={{
 										root: classes.inputRoot,
 										input: classes.inputInput,
@@ -183,7 +183,10 @@ export default function Header() {
 							</div>
 						</div>
 						<div className={classes.buttonsContainer}>
-							<Button color="inherit">Sign In</Button>
+							<Button color="inherit">Movies</Button>
+						</div>
+						<div className={classes.buttonsContainer}>
+							<Button color="inherit">Shows</Button>
 						</div>
 					</Toolbar>
 				</AppBar>

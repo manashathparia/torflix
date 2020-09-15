@@ -5,18 +5,22 @@ import Loader from "@material-ui/core/CircularProgress";
 import { getMovies } from "../Redux/Actions/contentActions";
 import { RootState } from "../Redux/Reducers";
 import Card from "../Components/Card";
+import { NEXT_PAGE } from "../Redux/Reducers/types";
 
 export default function MoviesPage() {
-	const [page, nextPage] = useState(1);
 	const [favorites, _updateFavorites] = useState<string[]>([]);
 	const dispatch = useDispatch();
-	const { movies } = useSelector((state: RootState) => state.content);
+	const { movies, page } = useSelector((state: RootState) => state.content);
+
 	useEffect(() => {
+		if (movies.length > 0) return;
 		dispatch(getMovies(1));
 	}, [dispatch]);
 
+	const nextPage = () => dispatch({ type: NEXT_PAGE });
+
 	const loadMore = () => {
-		nextPage(page + 1);
+		nextPage();
 		dispatch(getMovies(page + 1));
 	};
 
@@ -34,12 +38,13 @@ export default function MoviesPage() {
 	// const handleCurrentlyViewing = (id) => dispatch(updateCurrentlyViewing())
 
 	return (
-		<div style={{ textAlign: "center", padding: "20px" }}>
+		<div style={{ textAlign: "center" }}>
 			<InfiniteScroll
 				next={loadMore}
 				style={{ overflowY: "hidden" }}
 				loader={
 					<div>
+						<br />
 						<Loader />
 					</div>
 				}

@@ -10,6 +10,10 @@ const useStyles = makeStyles((theme) => ({
 	height: {
 		height: 255,
 		width: 170,
+		[theme.breakpoints.down("sm")]: {
+			height: 240,
+			width: 155,
+		},
 	},
 	card: {
 		display: "inline-block",

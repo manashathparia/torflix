@@ -1,6 +1,7 @@
 // constants
 export const ADD_MOVIES = "ADD_MOVIES";
 export const UPDATE_CURRENTLY_VIEWING = "UPDATE_CURRENTLY_VIEWING";
+export const NEXT_PAGE = "NEXT_PAGE";
 
 interface ContentBase {
 	_id: string;
@@ -41,4 +42,5 @@ export interface Movie extends ContentBase {
 export interface MoviesState {
 	movies: Array<Movie>;
 	currentlyViewing: Movie | object;
+	page: number;
 }
