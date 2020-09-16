@@ -17,9 +17,12 @@ function App() {
 				main: "#ffffff",
 			},
 			text: {
-				primary: "#ffffff",
+				primary: "#dfd9d9",
 				secondary: "#221f1f",
 			},
+		},
+		typography: {
+			fontFamily: "'Nunito', sans-serif'",
 		},
 	});
 

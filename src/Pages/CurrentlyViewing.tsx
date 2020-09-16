@@ -14,6 +14,7 @@ import makeStyles from "@material-ui/core/styles/makeStyles";
 import Star from "@material-ui/icons/Star";
 import PlayCircleOutline from "@material-ui/icons/PlayCircleOutline";
 import FavoriteBorder from "@material-ui/icons/FavoriteBorder";
+import PlayArrowRounded from "@material-ui/icons/PlayArrowRounded";
 import Favorite from "@material-ui/icons/Favorite";
 import Webtorrent from "webtorrent";
 import prettierBytes from "prettier-bytes";
@@ -25,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
 		background: "rgb(36 35 35)",
 		padding: "40px",
 		[theme.breakpoints.down("sm")]: {
-			padding: "20px",
+			padding: "0",
 		},
 	},
 	padding: {
@@ -67,6 +68,28 @@ const useStyles = makeStyles((theme) => ({
 		width: "500px",
 		[theme.breakpoints.down("sm")]: {
 			width: "100%",
+		},
+	},
+
+	play: {
+		width: "70px",
+		height: "70px",
+		border: "1px solid rgb(32 31 31)",
+		borderRadius: "50%",
+		position: "absolute",
+		top: "-35px",
+		margin: "auto",
+		left: 0,
+		right: 0,
+		background: "rgb(36, 35, 35)",
+		transition: "opacity 0.2s ease-in-out",
+		boxShadow: "0 2px 39px -3px rgb(0 0 0 / 12%)",
+		opacity: (props: any) => (props.show ? 1 : 0),
+		"&:focus": {
+			background: "rgb(36, 35, 35)",
+		},
+		"&:disabled": {
+			background: "rgb(36, 35, 35)",
 		},
 	},
 }));
@@ -112,13 +135,16 @@ export default function CurrentlyViewing({
 		show: false,
 		status: "Loading torrent",
 	});
-
+	const [bottom, isBottom] = useState(true);
 	const { movies, favorites } = useSelector(
 		(state: RootState) => state.content
 	);
 	const dispatch = useDispatch();
 
 	useEffect(() => {
+		document.addEventListener("scroll", () =>
+			window.pageYOffset > 20 ? isBottom(false) : isBottom(true)
+		);
 		const movie = movies.filter((movie) => movie._id === match.params.id)[0];
 
 		const fetchMovie = async () => {
@@ -169,20 +195,36 @@ export default function CurrentlyViewing({
 
 	const toggleFav = (id: string) => dispatch(handleFavMovies(id));
 
-	const classes = useStyles();
+	const classes = useStyles({ show: bottom });
 
 	return movie ? (
 		<Paper className={classes.paper}>
 			<Grid container>
-				<Grid item sm={12} lg={4}>
-					<img
-						className={classes.banner}
-						src={movie.images.banner.replace("http", "https")}
-						alt=""
-					/>
+				<Grid style={{ height: 300 }} item sm={12} lg={4}>
+					<div className="aa" style={{ position: "fixed" }}>
+						<img
+							className={classes.banner}
+							src={movie.images.banner.replace("http", "https")}
+							alt=""
+						/>
+					</div>
 				</Grid>
-				<Grid item sm={12} lg={8}>
-					<div style={{ display: "flex" }}>
+				<Grid
+					style={{
+						padding: 20,
+						borderRadius: 40,
+						zIndex: 9,
+						background: "rgb(36 35 35)",
+						position: "relative",
+					}}
+					item
+					sm={12}
+					lg={8}
+				>
+					<IconButton disabled={!bottom} className={classes.play}>
+						<PlayArrowRounded style={{ fontSize: 56, color: "white" }} />
+					</IconButton>
+					<div style={{ display: "flex", marginTop: 10 }}>
 						<Typography
 							style={{ flexGrow: 1 }}
 							className={classes.padding}
@@ -239,7 +281,7 @@ export default function CurrentlyViewing({
 								</div>
 							) : (
 								<>
-									<div style={{ padding: "10px 0" }}>
+									{/* <div style={{ padding: "10px 0" }}>
 										<span
 											className={`${classes.qualityButtons} ${
 												quality === "1080p" ? classes.qualityButtonSelected : ""
@@ -271,7 +313,7 @@ export default function CurrentlyViewing({
 									>
 										<PlayCircleOutline style={{ fontSize: "35px" }} />
 										WATCH
-									</Button>
+									</Button> */}
 								</>
 							)}
 						</Grid>

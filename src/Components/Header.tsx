@@ -26,8 +26,11 @@ const useStyles = makeStyles((theme) => ({
 		},
 	},
 	appBar: {
-		boxShadow: "0 2px 43px -4px rgb(0 0 0 / 12%)",
-		position: "relative",
+		// boxShadow: "0 2px 43px -4px rgb(0 0 0 / 12%)",
+		boxShadow: "none",
+		position: "absolute",
+		// background: "#00000052",
+		background: "#00000000",
 		top: 0,
 		[theme.breakpoints.up("sm")]: {
 			paddingLeft: "100px",
