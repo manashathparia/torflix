@@ -182,20 +182,27 @@ export default function CurrentlyViewing({
 					/>
 				</Grid>
 				<Grid item sm={12} lg={8}>
-					<IconButton
-						color="primary"
-						onClick={() => toggleFav(movie._id)}
-						className={classes.favIcon}
-					>
-						{favorites.includes(movie._id) ? (
-							<Favorite fontSize="large" />
-						) : (
-							<FavoriteBorder fontSize="large" />
-						)}
-					</IconButton>
-					<Typography className={classes.padding} variant="h4">
-						{movie.title}
-					</Typography>
+					<div style={{ display: "flex" }}>
+						<Typography
+							style={{ flexGrow: 1 }}
+							className={classes.padding}
+							variant="h4"
+						>
+							{movie.title}
+						</Typography>
+						<IconButton
+							color="primary"
+							onClick={() => toggleFav(movie._id)}
+
+							// className={classes.favIcon}
+						>
+							{favorites.includes(movie._id) ? (
+								<Favorite fontSize="large" />
+							) : (
+								<FavoriteBorder fontSize="large" />
+							)}
+						</IconButton>
+					</div>
 					{movie.genres.map((genre) => (
 						<Chip
 							variant="outlined"
