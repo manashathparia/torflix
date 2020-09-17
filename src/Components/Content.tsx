@@ -6,9 +6,9 @@ const useStyles = makeStyles((theme) => ({
 	root: {
 		backgroundColor: "#221f1f",
 		borderRadius: 0,
-		minHeight: "calc(100vh - 64px)",
+		minHeight: "calc(100vh )",
 		[theme.breakpoints.down("sm")]: {
-			minHeight: "calc(100vh - 56px)",
+			minHeight: "calc(100vh )",
 		},
 	},
 }));

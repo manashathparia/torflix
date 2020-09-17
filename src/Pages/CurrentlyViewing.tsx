@@ -15,16 +15,20 @@ import Star from "@material-ui/icons/Star";
 import PlayCircleOutline from "@material-ui/icons/PlayCircleOutline";
 import FavoriteBorder from "@material-ui/icons/FavoriteBorder";
 import PlayArrowRounded from "@material-ui/icons/PlayArrowRounded";
+import Close from "@material-ui/icons/Close";
 import Favorite from "@material-ui/icons/Favorite";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
+import Backdrop from "@material-ui/core/Backdrop";
 import Webtorrent from "webtorrent";
 import prettierBytes from "prettier-bytes";
 import { RootState } from "../Redux/Reducers";
 import { handleFavMovies } from "../Redux/Actions/contentActions";
+import TorrentDetails from "../Components/TorrentDetails";
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
 		background: "rgb(36 35 35)",
-		padding: "40px",
+		padding: "75px 40px",
 		[theme.breakpoints.down("sm")]: {
 			padding: "0",
 		},
@@ -66,6 +70,7 @@ const useStyles = makeStyles((theme) => ({
 		border: "none",
 		height: "250px",
 		width: "500px",
+		borderRadius: 15,
 		[theme.breakpoints.down("sm")]: {
 			width: "100%",
 		},
@@ -90,6 +95,26 @@ const useStyles = makeStyles((theme) => ({
 		},
 		"&:disabled": {
 			background: "rgb(36, 35, 35)",
+		},
+	},
+	detailsGrid: {
+		padding: 20,
+		borderRadius: 40,
+		zIndex: 9,
+		background: "rgb(36 35 35)",
+		position: "relative",
+	},
+	backdrop: {
+		zIndex: theme.zIndex.drawer + 1,
+		color: "#fff",
+		background: "rgb(0 0 0 / 81%)",
+	},
+	overlayClose: {
+		position: "absolute",
+		top: 30,
+		right: 40,
+		[theme.breakpoints.down("sm")]: {
+			right: 20,
 		},
 	},
 }));
@@ -136,6 +161,7 @@ export default function CurrentlyViewing({
 		status: "Loading torrent",
 	});
 	const [bottom, isBottom] = useState(true);
+	const [playOverlay, togglePlayOverlay] = useState(false);
 	const { movies, favorites } = useSelector(
 		(state: RootState) => state.content
 	);
@@ -197,6 +223,8 @@ export default function CurrentlyViewing({
 
 	const classes = useStyles({ show: bottom });
 
+	const isMobile = useMediaQuery("(max-width:600px)");
+
 	return movie ? (
 		<Paper className={classes.paper}>
 			<Grid container>
@@ -209,21 +237,16 @@ export default function CurrentlyViewing({
 						/>
 					</div>
 				</Grid>
-				<Grid
-					style={{
-						padding: 20,
-						borderRadius: 40,
-						zIndex: 9,
-						background: "rgb(36 35 35)",
-						position: "relative",
-					}}
-					item
-					sm={12}
-					lg={8}
-				>
-					<IconButton disabled={!bottom} className={classes.play}>
-						<PlayArrowRounded style={{ fontSize: 56, color: "white" }} />
-					</IconButton>
+				<Grid className={classes.detailsGrid} item sm={12} lg={8}>
+					{isMobile && (
+						<IconButton
+							onClick={() => togglePlayOverlay(true)}
+							disabled={!bottom}
+							className={classes.play}
+						>
+							<PlayArrowRounded style={{ fontSize: 56, color: "white" }} />
+						</IconButton>
+					)}
 					<div style={{ display: "flex", marginTop: 10 }}>
 						<Typography
 							style={{ flexGrow: 1 }}
@@ -280,45 +303,52 @@ export default function CurrentlyViewing({
 									<CircularProgress />
 								</div>
 							) : (
-								<>
-									{/* <div style={{ padding: "10px 0" }}>
-										<span
-											className={`${classes.qualityButtons} ${
-												quality === "1080p" ? classes.qualityButtonSelected : ""
-											}`}
-											onClick={() => updateQuality("1080p")}
+								!isMobile && (
+									<>
+										{" "}
+										{/* <div style={{ padding: "10px 0" }}>
+											<span
+												className={`${classes.qualityButtons} ${
+													quality === "1080p"
+														? classes.qualityButtonSelected
+														: ""
+												}`}
+												onClick={() => updateQuality("1080p")}
+											>
+												1080p
+											</span>
+											<span
+												className={`${classes.qualityButtons} ${
+													quality === "720p"
+														? classes.qualityButtonSelected
+														: ""
+												}`}
+												onClick={() => updateQuality("720p")}
+											>
+												720p
+											</span>
+										</div> */}
+										<Button
+											size="medium"
+											variant="outlined"
+											style={{
+												fontSize: "30px",
+												margin: "5px 0",
+												border: "2px solid",
+												color: "green",
+											}}
+											// onClick={() => stream(movie.torrents.en[quality].url)}4
+											onClick={() => togglePlayOverlay(true)}
 										>
-											1080p
-										</span>
-										<span
-											className={`${classes.qualityButtons} ${
-												quality === "720p" ? classes.qualityButtonSelected : ""
-											}`}
-											onClick={() => updateQuality("720p")}
-										>
-											720p
-										</span>
-									</div>
-
-									<Button
-										size="medium"
-										variant="outlined"
-										style={{
-											fontSize: "30px",
-											margin: "5px 0",
-											border: "2px solid",
-											color: "green",
-										}}
-										onClick={() => stream(movie.torrents.en[quality].url)}
-									>
-										<PlayCircleOutline style={{ fontSize: "35px" }} />
-										WATCH
-									</Button> */}
-								</>
+											<PlayCircleOutline style={{ fontSize: "35px" }} />
+											WATCH
+										</Button>
+									</>
+								)
 							)}
 						</Grid>
 						<Grid item={true} lg={6} xs={12} sm={12}>
-							<Typography variant="h6">Torrent Details</Typography>
+							{/* <Typography variant="h6">Torrent Details</Typography>
 							{loading || readyToStream ? (
 								<>
 									<div>Status: {torrentInfo.status}</div>
@@ -328,11 +358,11 @@ export default function CurrentlyViewing({
 								</>
 							) : (
 								<>
-									Size: {movie.torrents.en[quality].filesize}
-									<div>Seeds: {movie.torrents.en[quality].seed}</div>
-									<div>Peers: {movie.torrents.en[quality].peer}</div>
+									Size: {movie.torrents.en[quality]?.filesize}
+									<div>Seeds: {movie.torrents.en[quality]?.seed}</div>
+									<div>Peers: {movie.torrents.en[quality]?.peer}</div>
 								</>
-							)}
+							)} */}
 						</Grid>
 					</Grid>
 
@@ -347,6 +377,26 @@ export default function CurrentlyViewing({
 					</div>
 				</Grid>
 			</Grid>
+			<Backdrop className={classes.backdrop} open={playOverlay}>
+				<IconButton
+					onClick={() => togglePlayOverlay(false)}
+					className={classes.overlayClose}
+				>
+					<Close style={{ fontSize: "30px", color: "whitesmoke" }} />
+				</IconButton>
+				<TorrentDetails
+					seeds={movie.torrents.en["1080p"]?.seed}
+					peers={movie.torrents.en["1080p"]?.peer}
+					size={movie.torrents.en["1080p"]?.filesize}
+					res={"1080p"}
+				/>
+				<TorrentDetails
+					seeds={movie.torrents.en["1080p"]?.seed}
+					peers={movie.torrents.en["1080p"]?.peer}
+					size={movie.torrents.en["720p"]?.filesize}
+					res={"720p"}
+				/>
+			</Backdrop>
 		</Paper>
 	) : (
 		<>
