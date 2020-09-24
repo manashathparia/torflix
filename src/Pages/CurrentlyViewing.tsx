@@ -101,13 +101,16 @@ const useStyles = makeStyles((theme) => ({
 	},
 	detailsGrid: {
 		padding: 20,
-		borderRadius: (props: any) => (props.play ? 0 : 40),
+		borderRadius: 40,
+		// borderRadius: (props: any) => (props.play ? 0 : 40),
 		zIndex: 9,
 		background: "rgb(36 35 35)",
 		position: "relative",
 		width: "100%",
-		marginTop: (props: any) => (props.play ? 0 : 300),
+		marginTop: 300,
+		// marginTop: (props: any) => (props.play ? 0 : 300),
 		transition: "all .2s ease-in-out",
+		willChange: "margin-top, border-radius",
 	},
 	backdrop: {
 		zIndex: theme.zIndex.drawer + 1,
