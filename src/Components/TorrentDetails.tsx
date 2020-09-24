@@ -4,25 +4,25 @@ import makeStyles from "@material-ui/core/styles/makeStyles";
 
 const useStyles = makeStyles({
 	root: {
-		width: 170,
-		height: 170,
 		borderRadius: 10,
-		margin: 10,
+		margin: "auto 10",
 		background: "rgb(36 35 35 / 93%)",
 		cursor: "pointer",
+		border: (props: any) =>
+			props.selected ? "2px solid #b6b0b0" : "2px solid #303030",
+		marginBottom: "10px",
+		padding: "5px",
 	},
 	qualityButtons: {
 		padding: "5px",
 		borderRadius: "3px",
 		cursor: "pointer",
-		margin: 5,
+		margin: "auto",
 		color: "#e71616",
 		textAlign: "center",
-		marginTop: 10,
 	},
 	chip: {
 		margin: "auto",
-		display: "flex",
 		width: "70%",
 		marginTop: "5px",
 		color: "white",
@@ -36,14 +36,16 @@ interface Props {
 	seeds: number;
 	peers: number;
 	size: string;
+	selected: string;
+	onClick: Function;
 }
 
 export default function TorrentDetails(props: Props) {
-	const classes = useStyles();
+	const classes = useStyles({ selected: props.selected === props.res });
 	return (
-		<div className={classes.root}>
+		<div onClick={() => props.onClick()} className={classes.root}>
 			<div className={classes.qualityButtons}>{props.res}</div>
-			<div>
+			<div style={{ display: "flex" }}>
 				<Chip className={classes.chip} label={`${props.size}`}></Chip>
 				<Chip
 					style={{ color: "#a6e0c4" }}
