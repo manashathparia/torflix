@@ -15,17 +15,17 @@ import Star from "@material-ui/icons/Star";
 import PlayCircleOutline from "@material-ui/icons/PlayCircleOutline";
 import FavoriteBorder from "@material-ui/icons/FavoriteBorder";
 import PlayArrowRounded from "@material-ui/icons/PlayArrowRounded";
-import Close from "@material-ui/icons/Close";
 import Favorite from "@material-ui/icons/Favorite";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
-import Backdrop from "@material-ui/core/Backdrop";
 import Webtorrent from "webtorrent";
 import prettierBytes from "prettier-bytes";
 import { RootState } from "../Redux/Reducers";
-import { handleFavMovies } from "../Redux/Actions/contentActions";
+import {
+	handleFavMovies,
+	updateCurrentlyViewing,
+} from "../Redux/Actions/contentActions";
 import TorrentDetails from "../Components/TorrentDetails";
-import ArrowBackIcon from "@material-ui/icons/ArrowBack";
-import { ArrowBack } from "@material-ui/icons";
+import ArrowBack from "@material-ui/icons/ArrowBack";
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
@@ -101,29 +101,27 @@ const useStyles = makeStyles((theme) => ({
 	},
 	detailsGrid: {
 		padding: 20,
-		borderRadius: 40,
-		// borderRadius: (props: any) => (props.play ? 0 : 40),
+		// borderRadius: 40,
+		borderRadius: (props: any) => (props.play ? 0 : 40),
 		zIndex: 9,
 		background: "rgb(36 35 35)",
 		position: "relative",
 		width: "100%",
-		marginTop: 300,
 		// marginTop: (props: any) => (props.play ? 0 : 300),
 		transition: "all .2s ease-in-out",
 		willChange: "margin-top, border-radius",
-	},
-	backdrop: {
-		zIndex: theme.zIndex.drawer + 1,
-		color: "#fff",
-		background: "rgb(0 0 0 / 81%)",
-	},
-	overlayClose: {
-		position: "absolute",
-		top: 30,
-		right: 40,
 		[theme.breakpoints.down("sm")]: {
-			right: 20,
+			marginTop: 300,
 		},
+	},
+	videoPlay: {
+		position: "absolute",
+		margin: "auto",
+		top: 0,
+		bottom: 0,
+		left: 0,
+		right: 0,
+		fontSize: 60,
 	},
 }));
 
@@ -155,7 +153,8 @@ function time_convert(num: number) {
 
 export default function CurrentlyViewing({
 	match,
-}: RouteComponentProps<{ id: string }>) {
+	client,
+}: RouteComponentProps<{ id: string }> & { client: Webtorrent.Instance }) {
 	const [quality, updateQuality] = useState("1080p");
 	const [movie, updateMovie] = useState<Movie | null>(null);
 	const [readyToStream, handleReadyToStream] = useState(false);
@@ -170,6 +169,8 @@ export default function CurrentlyViewing({
 	});
 	const [bottom, isBottom] = useState(true);
 	const [playOverlay, togglePlayOverlay] = useState(false);
+	const [existingTorrents, updateExistingTorrents] = useState<string[]>([]);
+
 	const { movies, favorites } = useSelector(
 		(state: RootState) => state.content
 	);
@@ -193,22 +194,32 @@ export default function CurrentlyViewing({
 			return;
 		}
 		updateMovie(movie);
+		return () =>
+			localStorage.setItem(
+				"POS",
+				(document.getElementById(
+					"video"
+				) as HTMLMediaElement)?.currentTime.toString()
+			);
+		// return () => client.destroy?.();
 	}, [match.params.id, movies]);
 
+	useEffect(() => {
+		console.log(client.torrents);
+		client.torrents.forEach((torrent) =>
+			updateExistingTorrents([...existingTorrents, torrent.magnetURI])
+		);
+	}, []);
+
 	function stream(magnetUri: string) {
-		toggleLoading(true);
-		const client = new Webtorrent();
-		client.add(magnetUri, { path: "/" }, (torrent) => {
+		const torrent = client.get(magnetUri);
+		if (torrent) {
 			const file = torrent.files.find(function (file) {
 				return file.name.endsWith(".mp4");
 			});
 			toggleLoading(false);
 			handleReadyToStream(true);
 			file?.renderTo("video#video");
-			updateTorrentInfo({
-				...torrentInfo,
-				status: "Connecting to peers",
-			});
 			torrent.on("download", () => {
 				updateTorrentInfo({
 					download: torrent.downloadSpeed,
@@ -219,7 +230,42 @@ export default function CurrentlyViewing({
 					status: "Downloading",
 				});
 			});
-		});
+		} else {
+			toggleLoading(true);
+			client.add(magnetUri, (torrent) => {
+				const file = torrent.files.find(function (file) {
+					return file.name.endsWith(".mp4");
+				});
+				toggleLoading(false);
+				handleReadyToStream(true);
+				file?.renderTo("video#video");
+				console.log(document.querySelector("#video")?.getAttribute("src"));
+				updateTorrentInfo({
+					...torrentInfo,
+					status: "Connecting to peers",
+				});
+				torrent.on("download", () => {
+					updateTorrentInfo({
+						download: torrent.downloadSpeed,
+						upload: torrent.uploadSpeed,
+						progress: torrent.progress,
+						remaining: torrent.timeRemaining,
+						show: true,
+						status: "Downloading",
+					});
+				});
+			});
+		}
+
+		const el = document.getElementById("video");
+		// const position = (el as HTMLMediaElement)?.currentTime;
+		dispatch(
+			updateCurrentlyViewing({
+				id: match.params.id,
+				title: movie?.title || "",
+				magnetURI: magnetUri,
+			})
+		);
 
 		client.on("error", (err) => {
 			console.error("err", err);
@@ -237,7 +283,13 @@ export default function CurrentlyViewing({
 	const isMobile = useMediaQuery("(max-width:600px)");
 
 	return movie ? (
-		<Paper className={classes.paper}>
+		<Paper
+			className={classes.paper}
+			style={{
+				maxHeight: playOverlay ? "100vh" : "auto",
+				overflow: playOverlay ? "hidden" : "auto",
+			}}
+		>
 			<Grid container>
 				<Grid item sm={12} lg={4}>
 					<div className="aa" style={{ position: "fixed" }}>
@@ -248,7 +300,13 @@ export default function CurrentlyViewing({
 						/>
 					</div>
 				</Grid>
-				<Grid className={classes.detailsGrid} item sm={12} lg={8}>
+				<Grid
+					className={classes.detailsGrid}
+					style={{ transform: playOverlay ? "translateY(-300px)" : "none" }}
+					item
+					sm={12}
+					lg={8}
+				>
 					{isMobile && (
 						<IconButton
 							onClick={() => togglePlayOverlay(true)}
@@ -312,82 +370,87 @@ export default function CurrentlyViewing({
 							<Grid container>
 								<Grid item={true} lg={6} xs={12} sm={12}>
 									{!isMobile ? (
-										readyToStream ? (
-											<video
-												style={{ width: "98%" }}
-												autoPlay
-												muted
-												id="video"
-											/>
-										) : loading ? (
-											<div style={{ padding: "10px 30px" }}>
-												<CircularProgress />
-											</div>
-										) : (
-											<>
-												{" "}
-												<div style={{ padding: "10px 0" }}>
-													<span
-														className={`${classes.qualityButtons} ${
-															quality === "1080p"
-																? classes.qualityButtonSelected
-																: ""
-														}`}
-														onClick={() => updateQuality("1080p")}
-													>
-														1080p
-													</span>
-													<span
-														className={`${classes.qualityButtons} ${
-															quality === "720p"
-																? classes.qualityButtonSelected
-																: ""
-														}`}
-														onClick={() => updateQuality("720p")}
-													>
-														720p
-													</span>
-												</div>
-												<Button
-													size="medium"
-													variant="outlined"
-													style={{
-														fontSize: "30px",
-														margin: "5px 0",
-														border: "2px solid",
-														color: "green",
+										<>
+											<div style={{ padding: "0 10px 10px 0" }}>
+												<Video
+													handleStream={() => {
+														togglePlayOverlay(true);
+														stream(movie.torrents.en[quality].url);
 													}}
-													// onClick={() => stream(movie.torrents.en[quality].url)}4
-													onClick={() => togglePlayOverlay(true)}
-												>
-													<PlayCircleOutline style={{ fontSize: "35px" }} />
-													Play
-												</Button>
-											</>
-										)
+													readyToStream={readyToStream}
+													loading={loading}
+												/>
+											</div>
+											{readyToStream ? (
+												<video
+													style={{ width: "98%" }}
+													autoPlay
+													muted
+													id="video"
+												/>
+											) : loading ? (
+												<div style={{ padding: "10px 30px" }}>
+													<CircularProgress />
+												</div>
+											) : (
+												<>
+													{" "}
+													<div style={{ padding: "10px 0" }}>
+														<span
+															className={`${classes.qualityButtons} ${
+																quality === "1080p"
+																	? classes.qualityButtonSelected
+																	: ""
+															}`}
+															onClick={() => updateQuality("1080p")}
+														>
+															1080p
+														</span>
+														<span
+															className={`${classes.qualityButtons} ${
+																quality === "720p"
+																	? classes.qualityButtonSelected
+																	: ""
+															}`}
+															onClick={() => updateQuality("720p")}
+														>
+															720p
+														</span>
+													</div>
+												</>
+											)}
+										</>
 									) : null}
 								</Grid>
 								<Grid item={true} lg={6} xs={12} sm={12}>
-									<Typography variant="h6">Torrent Details</Typography>
-									{loading || readyToStream ? (
+									{!isMobile && (
 										<>
-											<div>Status: {torrentInfo.status}</div>
-											<div>D:{prettierBytes(torrentInfo.download)}/s</div>
-											<div>U:{prettierBytes(torrentInfo.upload)}/s </div>
-											<div>P:{(100 * torrentInfo.progress).toFixed(1)}% </div>
-										</>
-									) : (
-										<>
-											Size: {movie.torrents.en[quality]?.filesize}
-											<div>Seeds: {movie.torrents.en[quality]?.seed}</div>
-											<div>Peers: {movie.torrents.en[quality]?.peer}</div>
+											<Typography variant="h6">Torrent Details</Typography>
+											{loading || readyToStream ? (
+												<>
+													<div>Status: {torrentInfo.status}</div>
+													<div>D:{prettierBytes(torrentInfo.download)}/s</div>
+													<div>U:{prettierBytes(torrentInfo.upload)}/s </div>
+													<div>
+														P:{(100 * torrentInfo.progress).toFixed(1)}%{" "}
+													</div>
+												</>
+											) : (
+												<>
+													Size: {movie.torrents.en[quality]?.filesize}
+													<div>Seeds: {movie.torrents.en[quality]?.seed}</div>
+													<div>Peers: {movie.torrents.en[quality]?.peer}</div>
+												</>
+											)}
 										</>
 									)}
 								</Grid>
 							</Grid>
-							<Divider
-								style={{ backgroundColor: "#313030", margin: "10px 0" }}
-							/>
+							{!isMobile && (
+								<Divider
+									style={{ backgroundColor: "#313030", margin: "10px 0" }}
+								/>
+							)}
 							<div className={classes.padding}>
 								<Typography variant="h6">Trailer</Typography>
 								<iframe
@@ -407,21 +470,24 @@ export default function CurrentlyViewing({
 							>
 								<ArrowBack fontSize="large" />
 							</IconButton>
-							{readyToStream ? (
-								<video style={{ width: "98%" }} autoPlay muted id="video" />
-							) : loading ? (
-								<div style={{ padding: "10px 30px" }}>
-									<CircularProgress />
-								</div>
-							) : null}
-							{(loading || readyToStream) && (
-								<>
-									<div>Status: {torrentInfo.status}</div>
-									<div>D:{prettierBytes(torrentInfo.download)}/s</div>
-									<div>U:{prettierBytes(torrentInfo.upload)}/s </div>
-									<div>P:{(100 * torrentInfo.progress).toFixed(1)}% </div>
-								</>
-							)}
+							<Video
+								handleStream={() => {
+									togglePlayOverlay(true);
+									stream(movie.torrents.en[quality].url);
+								}}
+								readyToStream={readyToStream}
+								loading={loading}
+							/>
+							<div>
+								{(loading || readyToStream) && (
+									<>
+										<div>Status: {torrentInfo.status}</div>
+										<div>D:{prettierBytes(torrentInfo.download)}/s</div>
+										<div>U:{prettierBytes(torrentInfo.upload)}/s </div>
+										<div>P:{(100 * torrentInfo.progress).toFixed(1)}% </div>
+									</>
+								)}
+							</div>
 							<h3>Available Files</h3>
 							<TorrentDetails
 								onClick={() => updateQuality("1080p")}
@@ -430,59 +496,27 @@ export default function CurrentlyViewing({
 								size={movie.torrents.en["1080p"]?.filesize}
 								res={"1080p"}
 								selected={quality}
+								downloading={Boolean(
+									client.get(movie.torrents.en["1080p"]?.url)
+								)}
 							/>
 							<TorrentDetails
 								onClick={() => updateQuality("720p")}
-								seeds={movie.torrents.en["1080p"]?.seed}
-								peers={movie.torrents.en["1080p"]?.peer}
+								seeds={movie.torrents.en["720p"]?.seed}
+								peers={movie.torrents.en["720p"]?.peer}
 								size={movie.torrents.en["720p"]?.filesize}
 								res={"720p"}
 								selected={quality}
+								downloading={Boolean(
+									client.get(movie.torrents.en["720p"]?.url)
+								)}
 							/>
-							<div>
-								<Button
-									size="medium"
-									style={{
-										fontSize: "30px",
-										margin: "5px 0",
-										border: "2px solid",
-										borderRadius: "30px",
-										padding: "0 10px",
-									}}
-									onClick={() => {
-										togglePlayOverlay(true);
-										stream(movie.torrents.en[quality].url);
-									}}
-								>
-									<PlayCircleOutline style={{ fontSize: "35px" }} />
-									Play
-								</Button>
-							</div>
-							<div style={{ height: "50vh" }}></div>
+
+							<div style={{ height: "calc(100vh - 450px)" }}></div>
 						</>
 					)}
 				</Grid>
 			</Grid>
-			{/* <Backdrop className={classes.backdrop} open={playOverlay}>
-				<IconButton
-					onClick={() => togglePlayOverlay(false)}
-					className={classes.overlayClose}
-				>
-					<Close style={{ fontSize: "30px", color: "whitesmoke" }} />
-				</IconButton>
-				<TorrentDetails
-					seeds={movie.torrents.en["1080p"]?.seed}
-					peers={movie.torrents.en["1080p"]?.peer}
-					size={movie.torrents.en["1080p"]?.filesize}
-					res={"1080p"}
-				/>
-				<TorrentDetails
-					seeds={movie.torrents.en["1080p"]?.seed}
-					peers={movie.torrents.en["1080p"]?.peer}
-					size={movie.torrents.en["720p"]?.filesize}
-					res={"720p"}
-				/>
-			</Backdrop> */}
 		</Paper>
 	) : (
 		<>
@@ -491,3 +525,27 @@ export default function CurrentlyViewing({
 		</>
 	);
 }
+
+const Video = ({
+	readyToStream,
+	loading,
+	handleStream,
+}: {
+	readyToStream: boolean;
+	loading: boolean;
+	handleStream: (e: any) => void;
+}) => {
+	const classes = useStyles();
+	return (
+		<div style={{ background: "black", position: "relative" }}>
+			<video style={{ width: "100%" }} autoPlay muted id="video" />
+			{!readyToStream && !loading ? (
+				<IconButton className={classes.videoPlay} onClick={handleStream}>
+					<PlayArrowRounded color="secondary" style={{ fontSize: 60 }} />
+				</IconButton>
+			) : loading ? (
+				<CircularProgress className={classes.videoPlay} />
+			) : null}
+		</div>
+	);
+};

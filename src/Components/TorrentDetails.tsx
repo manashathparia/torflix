@@ -1,5 +1,6 @@
 import React from "react";
 import Chip from "@material-ui/core/Chip";
+import CloudDownload from "@material-ui/icons/CloudDownload";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 
 const useStyles = makeStyles({
@@ -12,6 +13,7 @@ const useStyles = makeStyles({
 			props.selected ? "2px solid #b6b0b0" : "2px solid #303030",
 		marginBottom: "10px",
 		padding: "5px",
+		position: "relative",
 	},
 	qualityButtons: {
 		padding: "5px",
@@ -29,6 +31,10 @@ const useStyles = makeStyles({
 		background: "#41404061",
 		cursor: "inherit",
 	},
+	downloadIcon: {
+		position: "absolute",
+		left: 10,
+	},
 });
 
 interface Props {
@@ -37,6 +43,7 @@ interface Props {
 	peers: number;
 	size: string;
 	selected: string;
+	downloading: boolean;
 	onClick: Function;
 }
 
@@ -44,6 +51,9 @@ export default function TorrentDetails(props: Props) {
 	const classes = useStyles({ selected: props.selected === props.res });
 	return (
 		<div onClick={() => props.onClick()} className={classes.root}>
+			{props.downloading ? (
+				<CloudDownload className={classes.downloadIcon} />
+			) : null}
 			<div className={classes.qualityButtons}>{props.res}</div>
 			<div style={{ display: "flex" }}>
 				<Chip className={classes.chip} label={`${props.size}`}></Chip>

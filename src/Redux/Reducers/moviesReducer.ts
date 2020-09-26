@@ -14,9 +14,15 @@ const initial: MoviesState = {
 	favorites: [],
 };
 
+type Payload =
+	| Movie
+	| Array<Movie>
+	| string[]
+	| { url?: string; position?: number };
+
 export default function moviesReducer(
 	state = initial,
-	{ type, payload }: { type: string; payload: Movie | Array<Movie> | string[] }
+	{ type, payload }: { type: string; payload: Payload }
 ): MoviesState {
 	switch (type) {
 		case ADD_MOVIES:
@@ -26,7 +32,7 @@ export default function moviesReducer(
 			};
 
 		case UPDATE_CURRENTLY_VIEWING:
-			return { ...state, currentlyViewing: payload as Movie };
+			return { ...state, currentlyViewing: payload as {} };
 
 		case NEXT_PAGE:
 			return { ...state, page: state.page + 1 };
