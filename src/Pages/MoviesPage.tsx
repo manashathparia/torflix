@@ -6,8 +6,9 @@ import { getMovies, handleFavMovies } from "../Redux/Actions/contentActions";
 import { RootState } from "../Redux/Reducers";
 import Card from "../Components/Card";
 import { NEXT_PAGE } from "../Redux/Reducers/types";
+import ResumeVideo from "../Components/ResumeVideo";
 
-export default function MoviesPage() {
+export default function MoviesPage({ history }: any) {
 	const dispatch = useDispatch();
 	const { movies, page, favorites } = useSelector(
 		(state: RootState) => state.content
@@ -28,31 +29,34 @@ export default function MoviesPage() {
 	const updateFavorites = (id: string) => dispatch(handleFavMovies(id));
 
 	return (
-		<div style={{ textAlign: "center", paddingTop: 10 }}>
-			<InfiniteScroll
-				next={loadMore}
-				style={{ overflowY: "hidden" }}
-				loader={
-					<div>
-						<br />
-						<Loader />
-					</div>
-				}
-				hasMore={true}
-				dataLength={movies.length}
-			>
-				{movies.map((movie) => (
-					<Card
-						favorites={favorites}
-						addFavorite={updateFavorites}
-						slug={movie._id}
-						rating={movie.rating.percentage / 10}
-						title={movie.title}
-						key={movie._id}
-						image={movie.images.poster.replace("http", "https")}
-					/>
-				))}
-			</InfiniteScroll>
-		</div>
+		<>
+			<div style={{ textAlign: "center", paddingTop: 64 }}>
+				<InfiniteScroll
+					next={loadMore}
+					style={{ overflowY: "hidden" }}
+					loader={
+						<div>
+							<br />
+							<Loader />
+						</div>
+					}
+					hasMore={true}
+					dataLength={movies.length}
+				>
+					{movies.map((movie) => (
+						<Card
+							favorites={favorites}
+							addFavorite={updateFavorites}
+							slug={movie._id}
+							rating={movie.rating.percentage / 10}
+							title={movie.title}
+							key={movie._id}
+							image={movie.images.poster.replace("http", "https")}
+						/>
+					))}
+				</InfiniteScroll>
+			</div>
+			<ResumeVideo push={history.push} />
+		</>
 	);
 }

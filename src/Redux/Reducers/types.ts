@@ -42,7 +42,12 @@ export interface Movie extends ContentBase {
 
 export interface MoviesState {
 	movies: Array<Movie>;
-	currentlyViewing: Movie | object;
+	currentlyViewing: {
+		id?: string;
+		position?: number;
+		title?: string;
+		magnetURI?: string;
+	};
 	page: number;
 	favorites: Array<string>;
 }

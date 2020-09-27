@@ -17,6 +17,9 @@ const useStyles = makeStyles((theme) => ({
 		position: "sticky",
 		top: 0,
 		zIndex: 9,
+		[theme.breakpoints.up("sm")]: {
+			zIndex: 999,
+		},
 	},
 	title: {
 		color: "white",
@@ -26,8 +29,10 @@ const useStyles = makeStyles((theme) => ({
 		},
 	},
 	appBar: {
-		boxShadow: "0 2px 43px -4px rgb(0 0 0 / 12%)",
-		position: "relative",
+		boxShadow: "none",
+		position: "absolute",
+		background:
+			"linear-gradient(to bottom, #1c1b1bd6 0%, rgb(34 31 31 / 0%) 100%)",
 		top: 0,
 		[theme.breakpoints.up("sm")]: {
 			paddingLeft: "100px",
@@ -35,10 +40,8 @@ const useStyles = makeStyles((theme) => ({
 		},
 	},
 	menuButton: {
-		border: "1px solid rgb(114 108 108 / 15%)",
-		borderRadius: "4px",
 		padding: "5px",
-		background: "rgb(215 213 213 / 20%)",
+		background: "none",
 		marginRight: theme.spacing(2),
 		"&:hover": {
 			background: "rgb(166 160 160 / 20%)",

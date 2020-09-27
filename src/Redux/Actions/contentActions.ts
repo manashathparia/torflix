@@ -29,9 +29,14 @@ const addMoviesAction = (movies: Array<Movie>) => {
 	};
 };
 
-export const updateCurrentlyViewing = (movie: Movie) => ({
+export const updateCurrentlyViewing = (movieDetails: {
+	id: string;
+	position?: number;
+	title: string;
+	magnetURI: string;
+}) => ({
 	type: UPDATE_CURRENTLY_VIEWING,
-	payload: movie,
+	payload: movieDetails,
 });
 
 export const handleFavMovies = (
