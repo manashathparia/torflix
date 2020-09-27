@@ -46,7 +46,6 @@ function App() {
 				<Content>
 					<Pages client={client} />
 				</Content>
-				<ResumeVideo />
 			</MuiThemeProvider>
 		</div>
 	);

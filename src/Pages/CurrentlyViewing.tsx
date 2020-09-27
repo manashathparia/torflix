@@ -26,6 +26,7 @@ import {
 } from "../Redux/Actions/contentActions";
 import TorrentDetails from "../Components/TorrentDetails";
 import ArrowBack from "@material-ui/icons/ArrowBack";
+import { saveToRecentlyWatched } from "../helpers";
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
@@ -153,6 +154,7 @@ function time_convert(num: number) {
 
 export default function CurrentlyViewing({
 	match,
+	location,
 	client,
 }: RouteComponentProps<{ id: string }> & { client: Webtorrent.Instance }) {
 	const [quality, updateQuality] = useState("1080p");
@@ -178,7 +180,7 @@ export default function CurrentlyViewing({
 
 	useEffect(() => {
 		document.addEventListener("scroll", () =>
-			window.pageYOffset > 20 ? isBottom(false) : isBottom(true)
+			window.pageYOffset > 50 ? isBottom(false) : isBottom(true)
 		);
 		const movie = movies.filter((movie) => movie._id === match.params.id)[0];
 
@@ -194,78 +196,82 @@ export default function CurrentlyViewing({
 			return;
 		}
 		updateMovie(movie);
-		return () =>
-			localStorage.setItem(
-				"POS",
-				(document.getElementById(
-					"video"
-				) as HTMLMediaElement)?.currentTime.toString()
-			);
 		// return () => client.destroy?.();
 	}, [match.params.id, movies]);
 
 	useEffect(() => {
-		console.log(client.torrents);
 		client.torrents.forEach((torrent) =>
 			updateExistingTorrents([...existingTorrents, torrent.magnetURI])
 		);
+		const resume = JSON.parse(
+			location.search?.split("?")[1]?.split("=")[1] || "false"
+		);
+		if (resume) {
+			togglePlayOverlay(true);
+			handleReadyToStream(true);
+			const magnetURI = movie?.torrents.en[quality].url;
+			const torrent = client.get(magnetURI);
+			if (torrent) {
+				handleTorrent(torrent);
+			}
+		}
 	}, []);
+
+	function handleTorrent(torrent: Webtorrent.Torrent) {
+		const file = torrent.files.find(function (file) {
+			return file.name.endsWith(".mp4");
+		});
+		handleReadyToStream(true);
+		toggleLoading(false);
+		updateTorrentInfo({
+			...torrentInfo,
+			status: "Connecting to peers",
+		});
+		file?.renderTo("video#video");
+		(document.getElementById("video") as HTMLMediaElement)?.play();
+		torrent.on("download", () => {
+			updateTorrentInfo({
+				download: torrent.downloadSpeed,
+				upload: torrent.uploadSpeed,
+				progress: torrent.progress,
+				remaining: torrent.timeRemaining,
+				show: true,
+				status: "Downloading",
+			});
+		});
+	}
 
 	function stream(magnetUri: string) {
 		const torrent = client.get(magnetUri);
 		if (torrent) {
-			const file = torrent.files.find(function (file) {
-				return file.name.endsWith(".mp4");
-			});
-			toggleLoading(false);
-			handleReadyToStream(true);
-			file?.renderTo("video#video");
-			torrent.on("download", () => {
-				updateTorrentInfo({
-					download: torrent.downloadSpeed,
-					upload: torrent.uploadSpeed,
-					progress: torrent.progress,
-					remaining: torrent.timeRemaining,
-					show: true,
-					status: "Downloading",
-				});
-			});
+			handleTorrent(torrent);
 		} else {
 			toggleLoading(true);
-			client.add(magnetUri, (torrent) => {
-				const file = torrent.files.find(function (file) {
-					return file.name.endsWith(".mp4");
-				});
-				toggleLoading(false);
-				handleReadyToStream(true);
-				file?.renderTo("video#video");
-				console.log(document.querySelector("#video")?.getAttribute("src"));
-				updateTorrentInfo({
-					...torrentInfo,
-					status: "Connecting to peers",
-				});
-				torrent.on("download", () => {
-					updateTorrentInfo({
-						download: torrent.downloadSpeed,
-						upload: torrent.uploadSpeed,
-						progress: torrent.progress,
-						remaining: torrent.timeRemaining,
-						show: true,
-						status: "Downloading",
-					});
-				});
-			});
+			client.add(magnetUri, handleTorrent);
 		}
-
-		const el = document.getElementById("video");
-		// const position = (el as HTMLMediaElement)?.currentTime;
-		dispatch(
-			updateCurrentlyViewing({
-				id: match.params.id,
-				title: movie?.title || "",
-				magnetURI: magnetUri,
-			})
-		);
+		setInterval(() => {
+			const videoEl = document.getElementById("video") as HTMLMediaElement;
+			if (videoEl) {
+				const lastWatchPosition = videoEl.currentTime;
+				const totalWatchTime = videoEl.duration;
+				if (lastWatchPosition > 0) {
+					saveToRecentlyWatched({
+						title: movie?.title,
+						id: movie?._id,
+						lastWatchPosition,
+						totalWatchTime,
+					});
+					dispatch(
+						updateCurrentlyViewing({
+							id: match.params.id,
+							title: movie?.title || "",
+							magnetURI: magnetUri,
+							position: lastWatchPosition,
+						})
+					);
+				}
+			}
+		}, 5000);
 
 		client.on("error", (err) => {
 			console.error("err", err);
@@ -374,51 +380,35 @@ export default function CurrentlyViewing({
 											<div style={{ padding: "0 10px 10px 0" }}>
 												<Video
 													handleStream={() => {
-														togglePlayOverlay(true);
 														stream(movie.torrents.en[quality].url);
 													}}
 													readyToStream={readyToStream}
 													loading={loading}
 												/>
 											</div>
-											{readyToStream ? (
-												<video
-													style={{ width: "98%" }}
-													autoPlay
-													muted
-													id="video"
-												/>
-											) : loading ? (
-												<div style={{ padding: "10px 30px" }}>
-													<CircularProgress />
-												</div>
-											) : (
-												<>
-													{" "}
-													<div style={{ padding: "10px 0" }}>
-														<span
-															className={`${classes.qualityButtons} ${
-																quality === "1080p"
-																	? classes.qualityButtonSelected
-																	: ""
-															}`}
-															onClick={() => updateQuality("1080p")}
-														>
-															1080p
-														</span>
-														<span
-															className={`${classes.qualityButtons} ${
-																quality === "720p"
-																	? classes.qualityButtonSelected
-																	: ""
-															}`}
-															onClick={() => updateQuality("720p")}
-														>
-															720p
-														</span>
-													</div>
-												</>
-											)}
+
+											<div style={{ padding: "10px 0" }}>
+												<span
+													className={`${classes.qualityButtons} ${
+														quality === "1080p"
+															? classes.qualityButtonSelected
+															: ""
+													}`}
+													onClick={() => updateQuality("1080p")}
+												>
+													1080p
+												</span>
+												<span
+													className={`${classes.qualityButtons} ${
+														quality === "720p"
+															? classes.qualityButtonSelected
+															: ""
+													}`}
+													onClick={() => updateQuality("720p")}
+												>
+													720p
+												</span>
+											</div>
 										</>
 									) : null}
 								</Grid>
