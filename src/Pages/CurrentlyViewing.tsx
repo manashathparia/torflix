@@ -186,7 +186,9 @@ export default function CurrentlyViewing({
 
 		const fetchMovie = async () => {
 			const movie = await (
-				await fetch(`https://torflix.vercel.app/api/movies/${match.params.id}`)
+				await fetch(
+					`https://apitorflix.vercel.app/api/movies/${match.params.id}`
+				)
 			).json();
 			updateMovie(movie);
 		};
