@@ -6,13 +6,11 @@ import Paper from "@material-ui/core/Paper";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
-import Button from "@material-ui/core/Button";
 import Chip from "@material-ui/core/Chip";
 import IconButton from "@material-ui/core/IconButton";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import Star from "@material-ui/icons/Star";
-import PlayCircleOutline from "@material-ui/icons/PlayCircleOutline";
 import FavoriteBorder from "@material-ui/icons/FavoriteBorder";
 import PlayArrowRounded from "@material-ui/icons/PlayArrowRounded";
 import Favorite from "@material-ui/icons/Favorite";
@@ -171,9 +169,8 @@ export default function CurrentlyViewing({
 	});
 	const [bottom, isBottom] = useState(true);
 	const [playOverlay, togglePlayOverlay] = useState(false);
-	const [existingTorrents, updateExistingTorrents] = useState<string[]>([]);
 
-	const { movies, favorites } = useSelector(
+	const { movies, favorites, currentlyViewing: watchingRightNow } = useSelector(
 		(state: RootState) => state.content
 	);
 	const dispatch = useDispatch();
@@ -201,23 +198,29 @@ export default function CurrentlyViewing({
 		// return () => client.destroy?.();
 	}, [match.params.id, movies]);
 
+	const resume = JSON.parse(
+		location.search?.split("?")[1]?.split("=")[1] || "false"
+	);
+
 	useEffect(() => {
-		client.torrents.forEach((torrent) =>
-			updateExistingTorrents([...existingTorrents, torrent.magnetURI])
-		);
-		const resume = JSON.parse(
-			location.search?.split("?")[1]?.split("=")[1] || "false"
-		);
 		if (resume) {
 			togglePlayOverlay(true);
 			handleReadyToStream(true);
-			const magnetURI = movie?.torrents.en[quality].url;
-			const torrent = client.get(magnetURI);
+		}
+	}, [resume]);
+
+	const handleVideoOnMount = () => {
+		if (resume) {
+			watchingRightNow.quality && updateQuality(watchingRightNow.quality);
+			const torrent = client.get(watchingRightNow.magnetURI || "");
+			console.log(torrent);
 			if (torrent) {
 				handleTorrent(torrent);
+			} else {
+				handleReadyToStream(false);
 			}
 		}
-	}, []);
+	};
 
 	function handleTorrent(torrent: Webtorrent.Torrent) {
 		const file = torrent.files.find(function (file) {
@@ -230,7 +233,9 @@ export default function CurrentlyViewing({
 			status: "Connecting to peers",
 		});
 		file?.renderTo("video#video");
-		(document.getElementById("video") as HTMLMediaElement)?.play();
+		const video = document.getElementById("video") as HTMLMediaElement;
+		video?.play();
+		video.currentTime = watchingRightNow.position || 0;
 		torrent.on("download", () => {
 			updateTorrentInfo({
 				download: torrent.downloadSpeed,
@@ -269,6 +274,7 @@ export default function CurrentlyViewing({
 							title: movie?.title || "",
 							magnetURI: magnetUri,
 							position: lastWatchPosition,
+							quality,
 						})
 					);
 				}
@@ -386,6 +392,8 @@ export default function CurrentlyViewing({
 													}}
 													readyToStream={readyToStream}
 													loading={loading}
+													image={movie.images.fanart}
+													handleVideoOnMount={handleVideoOnMount}
 												/>
 											</div>
 
@@ -469,6 +477,8 @@ export default function CurrentlyViewing({
 								}}
 								readyToStream={readyToStream}
 								loading={loading}
+								image={movie.images.fanart}
+								handleVideoOnMount={handleVideoOnMount}
 							/>
 							<div>
 								{(loading || readyToStream) && (
@@ -522,14 +532,27 @@ const Video = ({
 	readyToStream,
 	loading,
 	handleStream,
+	image,
+	handleVideoOnMount,
 }: {
 	readyToStream: boolean;
 	loading: boolean;
 	handleStream: (e: any) => void;
+	image: string;
+	handleVideoOnMount: Function;
 }) => {
+	useEffect(() => {
+		handleVideoOnMount();
+	}, [handleVideoOnMount]);
 	const classes = useStyles();
 	return (
-		<div style={{ background: "black", position: "relative" }}>
+		<div
+			style={{
+				background: `url(${image})`,
+				position: "relative",
+				boxShadow: "inset 0 0 0 2000px rgb(1 1 1 / 39%)",
+			}}
+		>
 			<video style={{ width: "100%" }} autoPlay muted id="video" />
 			{!readyToStream && !loading ? (
 				<IconButton className={classes.videoPlay} onClick={handleStream}>

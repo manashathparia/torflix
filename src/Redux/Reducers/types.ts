@@ -47,6 +47,7 @@ export interface MoviesState {
 		position?: number;
 		title?: string;
 		magnetURI?: string;
+		quality?: string;
 	};
 	page: number;
 	favorites: Array<string>;

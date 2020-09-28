@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import { makeStyles, Snackbar, Button, IconButton } from "@material-ui/core";
 import { RootState } from "../Redux/Reducers";
 import { Close } from "@material-ui/icons";
-import { Redirect } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
 	close: {
@@ -20,11 +19,15 @@ export default function ResumeVideo(props: any) {
 		toggleSnackbar(Boolean(currentlyViewing.title));
 	}, [currentlyViewing.title]);
 
+	const hideSnackBar = () => {
+		toggleSnackbar(false);
+	};
+
 	const classes = useStyles();
 	return (
 		<Snackbar
 			open={show}
-			message={"Deadpool"}
+			message={currentlyViewing.title}
 			action={
 				<>
 					<Button
@@ -34,7 +37,7 @@ export default function ResumeVideo(props: any) {
 					>
 						RESUME
 					</Button>
-					<IconButton className={classes.close}>
+					<IconButton onClick={hideSnackBar} className={classes.close}>
 						<Close color="secondary" />
 					</IconButton>
 				</>

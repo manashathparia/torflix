@@ -34,6 +34,7 @@ export const updateCurrentlyViewing = (movieDetails: {
 	position?: number;
 	title: string;
 	magnetURI: string;
+	quality: string;
 }) => ({
 	type: UPDATE_CURRENTLY_VIEWING,
 	payload: movieDetails,
