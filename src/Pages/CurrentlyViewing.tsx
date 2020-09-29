@@ -175,6 +175,8 @@ export default function CurrentlyViewing({
 	);
 	const dispatch = useDispatch();
 
+	const isMobile = useMediaQuery("(max-width:600px)");
+
 	useEffect(() => {
 		document.addEventListener("scroll", () =>
 			window.pageYOffset > 50 ? isBottom(false) : isBottom(true)
@@ -204,10 +206,11 @@ export default function CurrentlyViewing({
 
 	useEffect(() => {
 		if (resume) {
-			togglePlayOverlay(true);
+			console.log(isMobile);
+			isMobile && togglePlayOverlay(true);
 			handleReadyToStream(true);
 		}
-	}, [resume]);
+	}, [resume, isMobile]);
 
 	const handleVideoOnMount = () => {
 		if (resume) {
@@ -293,8 +296,6 @@ export default function CurrentlyViewing({
 		show: bottom && !playOverlay,
 		play: playOverlay,
 	});
-
-	const isMobile = useMediaQuery("(max-width:600px)");
 
 	return movie ? (
 		<Paper
