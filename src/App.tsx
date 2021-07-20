@@ -7,7 +7,6 @@ import Content from "./Components/Content";
 import { MuiThemeProvider } from "@material-ui/core";
 import { useDispatch } from "react-redux";
 import { loadFavMovies } from "./Redux/Actions/contentActions";
-import ResumeVideo from "./Components/ResumeVideo";
 
 function App() {
 	const theme = createTheme({

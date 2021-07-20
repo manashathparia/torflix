@@ -132,7 +132,7 @@ declare global {
 
 declare module "prettier-bytes" {}
 
-window.WEBTORRENT_ANNOUNCE = [
+const announceList: any = [
 	["udp://tracker.openbittorrent.com:80"],
 	["udp://tracker.internetwarriors.net:1337"],
 	["udp://tracker.leechers-paradise.org:6969"],
@@ -143,6 +143,26 @@ window.WEBTORRENT_ANNOUNCE = [
 	["wss://tracker.openwebtorrent.com"],
 	["wss://tracker.fastcast.nz"],
 ];
+
+window.WEBTORRENT_ANNOUNCE = announceList
+	.map(function (arr: string[]) {
+		return arr[0];
+	})
+	.filter(function (url: string) {
+		return url.indexOf("wss://") === 0 || url.indexOf("ws://") === 0;
+	});
+
+// window.WEBTORRENT_ANNOUNCE = [
+// 	["udp://tracker.openbittorrent.com:80"],
+// 	["udp://tracker.internetwarriors.net:1337"],
+// 	["udp://tracker.leechers-paradise.org:6969"],
+// 	["udp://tracker.coppersurfer.tk:6969"],
+// 	["udp://exodus.desync.com:6969"],
+// 	["wss://tracker.webtorrent.io"],
+// 	["wss://tracker.btorrent.xyz"],
+// 	// ["wss://tracker.openwebtorrent.com"],
+// 	["wss://tracker.fastcast.nz"],
+// ];
 
 function time_convert(num: number) {
 	const hours = Math.floor(num / 60);
@@ -176,6 +196,12 @@ export default function CurrentlyViewing({
 	const dispatch = useDispatch();
 
 	const isMobile = useMediaQuery("(max-width:600px)");
+
+	useEffect(() => {
+		if (movie) {
+			document.title = movie.title;
+		}
+	}, [movie]);
 
 	useEffect(() => {
 		document.addEventListener("scroll", () =>
@@ -405,7 +431,10 @@ export default function CurrentlyViewing({
 															? classes.qualityButtonSelected
 															: ""
 													}`}
-													onClick={() => updateQuality("1080p")}
+													onClick={() => {
+														handleReadyToStream(false);
+														updateQuality("1080p");
+													}}
 												>
 													1080p
 												</span>
@@ -461,7 +490,7 @@ export default function CurrentlyViewing({
 									}`}
 									title="trailer"
 								/>
-							</div>{" "}
+							</div>
 						</>
 					) : (
 						<>
@@ -492,29 +521,17 @@ export default function CurrentlyViewing({
 								)}
 							</div>
 							<h3>Available Files</h3>
-							<TorrentDetails
-								onClick={() => updateQuality("1080p")}
-								seeds={movie.torrents.en["1080p"]?.seed}
-								peers={movie.torrents.en["1080p"]?.peer}
-								size={movie.torrents.en["1080p"]?.filesize}
-								res={"1080p"}
-								selected={quality}
-								downloading={Boolean(
-									client.get(movie.torrents.en["1080p"]?.url)
-								)}
-							/>
-							<TorrentDetails
-								onClick={() => updateQuality("720p")}
-								seeds={movie.torrents.en["720p"]?.seed}
-								peers={movie.torrents.en["720p"]?.peer}
-								size={movie.torrents.en["720p"]?.filesize}
-								res={"720p"}
-								selected={quality}
-								downloading={Boolean(
-									client.get(movie.torrents.en["720p"]?.url)
-								)}
-							/>
-
+							{Object.entries(movie.torrents.en).map(([key, torrent]: any) => (
+								<TorrentDetails
+									onClick={() => updateQuality(key)}
+									seeds={torrent.seed}
+									peers={torrent.peer}
+									size={torrent.filesize}
+									res={key}
+									selected={quality}
+									downloading={Boolean(client.get(torrent.url))}
+								/>
+							))}
 							<div style={{ height: "calc(100vh - 450px)" }}></div>
 						</>
 					)}
@@ -540,7 +557,7 @@ const Video = ({
 	loading: boolean;
 	handleStream: (e: any) => void;
 	image: string;
-	handleVideoOnMount: Function;
+	handleVideoOnMount: () => void;
 }) => {
 	useEffect(() => {
 		handleVideoOnMount();
