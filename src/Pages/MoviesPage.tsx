@@ -42,19 +42,11 @@ export default function MoviesPage({ history }: any) {
 					}
 					hasMore={true}
 					dataLength={movies.length}
-				>
-					{movies.map((movie) => (
-						<Card
-							favorites={favorites}
-							addFavorite={updateFavorites}
-							slug={movie._id}
-							rating={movie.rating.percentage / 10}
-							title={movie.title}
-							key={movie._id}
-							image={movie.images.poster.replace("http", "https")}
-						/>
-					))}
-				</InfiniteScroll>
+				> */}
+					{shuffuledArr.map((movie, i) => {
+						
+					})}
+				{/* </InfiniteScroll> */}
 			</div>
 			<ResumeVideo push={history.push} />
 		</>
