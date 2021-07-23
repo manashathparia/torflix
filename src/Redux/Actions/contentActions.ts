@@ -5,18 +5,28 @@ import {
 	ADD_MOVIES,
 	UPDATE_CURRENTLY_VIEWING,
 	TOGGLE_FAVORITE_MOVIE,
+	Show,
+	ADD_SHOWS,
 } from "../Reducers/types";
 import { RootState } from "../Reducers";
 
-export const getMovies = (
+export const getInitalContent = (
 	page: number = 1
 ): ThunkAction<void, null, unknown, Action<string>> => async (dispatch) => {
 	try {
 		const movies: Array<Movie> = await (
-			await fetch(`https://apitorflix.vercel.app/api/movies/?page=${page}`)
+			await fetch(
+				`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://popcorn-ru.tk/movies/${page}/?sort=trending`
+			)
+		).json();
+		const shows: Array<Show> = await (
+			await fetch(
+				`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://popcorn-ru.tk/shows/${page}/?sort=trending`
+			)
 		).json();
 
 		dispatch(addMoviesAction(movies));
+		dispatch(addShowsAction(shows));
 	} catch (error) {
 		console.log(error);
 	}
@@ -25,6 +35,12 @@ export const getMovies = (
 const addMoviesAction = (movies: Array<Movie>) => {
 	return {
 		type: ADD_MOVIES,
+		payload: movies,
+	};
+};
+const addShowsAction = (movies: Array<Show>) => {
+	return {
+		type: ADD_SHOWS,
 		payload: movies,
 	};
 };
@@ -47,7 +63,7 @@ export const handleFavMovies = (
 	getState
 ) => {
 	const {
-		content: { favorites },
+		movies: { favorites },
 	} = getState();
 
 	if (favorites.includes(id)) {

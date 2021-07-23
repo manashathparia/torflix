@@ -10,9 +10,9 @@ const useStyles = makeStyles((theme) => ({
 	height: {
 		height: 255,
 		width: 170,
-		[theme.breakpoints.down("sm")]: {
-			height: 240,
-			width: 155,
+		[theme.breakpoints.down("xs")]: {
+			height: 250,
+			width: "45%",
 		},
 	},
 	card: {
@@ -31,6 +31,7 @@ const useStyles = makeStyles((theme) => ({
 	},
 	image: {
 		borderRadius: "4px",
+		width: "100%",
 	},
 	loveIcon: {
 		position: "absolute",

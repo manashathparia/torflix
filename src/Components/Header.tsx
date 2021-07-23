@@ -6,7 +6,7 @@ import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import InputBase from "@material-ui/core/InputBase";
 import IconButton from "@material-ui/core/IconButton";
-import SearchIcon from "@material-ui/icons/Search";
+import SearchIcon from "../icons/search";
 import MenuIcon from "@material-ui/icons/Menu";
 import { Link } from "react-router-dom";
 import Menu from "./Menu";
@@ -14,8 +14,8 @@ import Menu from "./Menu";
 const useStyles = makeStyles((theme) => ({
 	root: {
 		flexGrow: 1,
-		position: "sticky",
-		top: 0,
+		// position: "sticky",
+		// top: 0,
 		zIndex: 9,
 		[theme.breakpoints.up("sm")]: {
 			zIndex: 999,
@@ -30,10 +30,11 @@ const useStyles = makeStyles((theme) => ({
 	},
 	appBar: {
 		boxShadow: "none",
-		position: "absolute",
-		background:
-			"linear-gradient(to bottom, #1c1b1bd6 0%, rgb(34 31 31 / 0%) 100%)",
-		top: 0,
+		position: "relative",
+		background: "#181b20",
+		// background:
+		// 	"linear-gradient(to bottom, #1c1b1bd6 0%, rgb(34 31 31 / 0%) 100%)",
+		// top: 0,
 		[theme.breakpoints.up("sm")]: {
 			paddingLeft: "100px",
 			paddingRight: "100px",
@@ -155,16 +156,6 @@ export default function Header() {
 			<div className={classes.root}>
 				<AppBar position="static" className={classes.appBar} color="primary">
 					<Toolbar>
-						<IconButton
-							edge="start"
-							className={classes.menuButton}
-							color="inherit"
-							aria-label="menu"
-							disableRipple
-							onClick={() => toggleMenu(!menuOpen)}
-						>
-							<MenuIcon />
-						</IconButton>
 						<Link to="/" className={classes.title}>
 							<Typography variant="h6">TORFLIX</Typography>
 						</Link>

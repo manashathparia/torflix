@@ -12,18 +12,17 @@ import { NEXT_PAGE } from "../Redux/Reducers/types";
 import ResumeVideo from "../Components/ResumeVideo";
 import BottomNav from "../Components/BottomNav";
 import { Typography } from "@material-ui/core";
-import { Link } from "react-router-dom";
 
-export default function MoviesPage({ history }: any) {
+export default function ShowssPage({ history }: any) {
 	const dispatch = useDispatch();
 	const {
-		movies: { moviesList: movies, page, favorites },
+		shows: { showsList: shows, page, favorites },
 	} = useSelector((state: RootState) => state);
 
 	useEffect(() => {
-		if (movies.length > 0) return;
-		dispatch(getInitalContent(1));
-	}, [dispatch, movies]);
+		if (shows.length > 0) return;
+		// dispatch(getInitalContent(1));
+	}, [dispatch, shows]);
 
 	const nextPage = () => dispatch({ type: NEXT_PAGE });
 
@@ -47,9 +46,9 @@ export default function MoviesPage({ history }: any) {
 						</div>
 					}
 					hasMore={true}
-					dataLength={movies.length}
+					dataLength={shows.length}
 				>
-					{movies.map((movie: any) => {
+					{shows.map((movie: any) => {
 						return (
 							<Card
 								favorites={favorites}

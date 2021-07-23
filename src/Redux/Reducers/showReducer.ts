@@ -1,34 +1,34 @@
 import {
-	MoviesState,
-	Movie,
-	ADD_MOVIES,
+	ShowState,
+	Show,
+	ADD_SHOWS,
 	UPDATE_CURRENTLY_VIEWING,
 	NEXT_PAGE,
 	TOGGLE_FAVORITE_MOVIE,
 } from "./types";
 
-const initial: MoviesState = {
-	moviesList: [],
+const initial: ShowState = {
+	showsList: [],
 	currentlyViewing: {},
 	page: 1,
 	favorites: [],
 };
 
 type Payload =
-	| Movie
-	| Array<Movie>
+	| Show
+	| Array<Show>
 	| string[]
 	| { url?: string; position?: number };
 
 export default function moviesReducer(
 	state = initial,
 	{ type, payload }: { type: string; payload: Payload }
-): MoviesState {
+): ShowState {
 	switch (type) {
-		case ADD_MOVIES:
+		case ADD_SHOWS:
 			return {
 				...state,
-				moviesList: [...state.moviesList, ...(payload as Array<Movie>)],
+				showsList: [...state.showsList, ...(payload as Array<Show>)],
 			};
 
 		case UPDATE_CURRENTLY_VIEWING:

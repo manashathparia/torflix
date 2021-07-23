@@ -1,5 +1,6 @@
 // constants
 export const ADD_MOVIES = "ADD_MOVIES";
+export const ADD_SHOWS = "ADD_SHOWS";
 export const UPDATE_CURRENTLY_VIEWING = "UPDATE_CURRENTLY_VIEWING";
 export const NEXT_PAGE = "NEXT_PAGE";
 export const TOGGLE_FAVORITE_MOVIE = "TOGGLE_FAVORITE_MOVIE";
@@ -41,7 +42,20 @@ export interface Movie extends ContentBase {
 }
 
 export interface MoviesState {
-	movies: Array<Movie>;
+	moviesList: Array<Movie>;
+	currentlyViewing: {
+		id?: string;
+		position?: number;
+		title?: string;
+		magnetURI?: string;
+		quality?: string;
+	};
+	page: number;
+	favorites: Array<string>;
+}
+
+export interface ShowState {
+	showsList: Array<Show>;
 	currentlyViewing: {
 		id?: string;
 		position?: number;

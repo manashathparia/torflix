@@ -15,11 +15,11 @@ function App() {
 				main: "#cd2c2c",
 			},
 			secondary: {
-				main: "#ffffff",
+				main: "#181b20",
 			},
 			text: {
 				primary: "#dfd9d9",
-				secondary: "#221f1f",
+				secondary: "#b5b5b8",
 			},
 		},
 		typography: {

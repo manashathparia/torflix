@@ -4,7 +4,7 @@ import { makeStyles } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
 	root: {
-		backgroundColor: "#221f1f",
+		backgroundColor: "#181b20",
 		borderRadius: 0,
 		minHeight: "calc(100vh )",
 		[theme.breakpoints.down("sm")]: {

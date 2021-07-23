@@ -190,9 +190,11 @@ export default function CurrentlyViewing({
 	const [bottom, isBottom] = useState(true);
 	const [playOverlay, togglePlayOverlay] = useState(false);
 
-	const { movies, favorites, currentlyViewing: watchingRightNow } = useSelector(
-		(state: RootState) => state.content
-	);
+	const {
+		moviesList: movies,
+		favorites,
+		currentlyViewing: watchingRightNow,
+	} = useSelector((state: RootState) => state.movies);
 	const dispatch = useDispatch();
 
 	const isMobile = useMediaQuery("(max-width:600px)");
@@ -211,9 +213,7 @@ export default function CurrentlyViewing({
 
 		const fetchMovie = async () => {
 			const movie = await (
-				await fetch(
-					`https://apitorflix.vercel.app/api/movies/${match.params.id}`
-				)
+				await fetch(`https://popcorn-ru.tk/movie/${match.params.id}`)
 			).json();
 			updateMovie(movie);
 		};
