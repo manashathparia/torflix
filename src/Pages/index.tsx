@@ -17,7 +17,14 @@ export default function Pages({ client }: any) {
 			<Route
 				path="/movie/:id"
 				component={(props: RouteComponentProps<{ id: string }>) => (
-					<CurrentlyViewing {...props} client={client} />
+					<CurrentlyViewing type="movie" {...props} client={client} />
+				)}
+				exact
+			/>
+			<Route
+				path="/show/:id"
+				component={(props: RouteComponentProps<{ id: string }>) => (
+					<CurrentlyViewing type="show" {...props} client={client} />
 				)}
 				exact
 			/>

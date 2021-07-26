@@ -15,7 +15,7 @@ function App() {
 				main: "#cd2c2c",
 			},
 			secondary: {
-				main: "#181b20",
+				main: "#ffffff",
 			},
 			text: {
 				primary: "#dfd9d9",
@@ -41,7 +41,6 @@ function App() {
 	return (
 		<div className="App" style={{ minHeight: "100vh" }}>
 			<MuiThemeProvider theme={theme}>
-				<Header />
 				<Content>
 					<Pages client={client} />
 				</Content>

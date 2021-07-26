@@ -10,8 +10,9 @@ import {
 } from "../Reducers/types";
 import { RootState } from "../Reducers";
 
-export const getInitalContent = (
-	page: number = 1
+export const getMovies = (
+	page: number = 1,
+	retryNo: number = 0
 ): ThunkAction<void, null, unknown, Action<string>> => async (dispatch) => {
 	try {
 		const movies: Array<Movie> = await (
@@ -19,13 +20,27 @@ export const getInitalContent = (
 				`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://popcorn-ru.tk/movies/${page}/?sort=trending`
 			)
 		).json();
+
+		dispatch(addMoviesAction(movies));
+	} catch (error) {
+		console.log(error);
+		if (retryNo < 2) {
+			// Sometimes the api takes more than 10sec to respond, which is beyond vercel execution time.
+			//if the request fails retry it 2nd time
+			dispatch(getMovies(page, retryNo + 1));
+		}
+	}
+};
+export const getShows = (
+	page: number = 1
+): ThunkAction<void, null, unknown, Action<string>> => async (dispatch) => {
+	try {
 		const shows: Array<Show> = await (
 			await fetch(
 				`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://popcorn-ru.tk/shows/${page}/?sort=trending`
 			)
 		).json();
 
-		dispatch(addMoviesAction(movies));
 		dispatch(addShowsAction(shows));
 	} catch (error) {
 		console.log(error);

@@ -27,6 +27,9 @@ export interface Show extends ContentBase {
 	tvdb_id: string;
 	slug: string;
 	num_seasons: number;
+	synopsis: string;
+	genres: string[];
+	seasons: any[];
 }
 
 export interface Movie extends ContentBase {

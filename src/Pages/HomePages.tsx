@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link, Route, Switch } from "react-router-dom";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import MoviesPage from "./MoviesPage";
-import ShowssPage from "./ShowsPage";
+import ShowsPage from "./ShowsPage";
+import Header from "../Components/Header";
 
 const styles = makeStyles({
 	root: {
@@ -26,6 +27,7 @@ export default function HomePage({ location }: any) {
 	const classes = styles();
 	return (
 		<>
+			<Header />
 			<div className={classes.root}>
 				<Link
 					onClick={() => updateLoc("movies")}
@@ -51,7 +53,7 @@ export default function HomePage({ location }: any) {
 			</div>
 			<Switch>
 				<Route path="/movies" component={MoviesPage} exact />
-				<Route path="/shows" component={ShowssPage} exact />
+				<Route path="/shows" component={ShowsPage} exact />
 			</Switch>
 		</>
 	);

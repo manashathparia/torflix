@@ -2,16 +2,11 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import InfiniteScroll from "react-infinite-scroll-component";
 import Loader from "@material-ui/core/CircularProgress";
-import {
-	getInitalContent,
-	handleFavMovies,
-} from "../Redux/Actions/contentActions";
+import { getShows, handleFavMovies } from "../Redux/Actions/contentActions";
 import { RootState } from "../Redux/Reducers";
 import Card from "../Components/Card";
 import { NEXT_PAGE } from "../Redux/Reducers/types";
 import ResumeVideo from "../Components/ResumeVideo";
-import BottomNav from "../Components/BottomNav";
-import { Typography } from "@material-ui/core";
 
 export default function ShowssPage({ history }: any) {
 	const dispatch = useDispatch();
@@ -21,14 +16,14 @@ export default function ShowssPage({ history }: any) {
 
 	useEffect(() => {
 		if (shows.length > 0) return;
-		// dispatch(getInitalContent(1));
+		dispatch(getShows(1));
 	}, [dispatch, shows]);
 
 	const nextPage = () => dispatch({ type: NEXT_PAGE });
 
 	const loadMore = () => {
 		nextPage();
-		dispatch(getInitalContent(page + 1));
+		dispatch(getShows(page + 1));
 	};
 
 	const updateFavorites = (id: string) => dispatch(handleFavMovies(id));
@@ -58,6 +53,7 @@ export default function ShowssPage({ history }: any) {
 								title={movie.title}
 								key={movie._id}
 								image={movie.images.poster.replace("http", "https")}
+								type="show"
 							/>
 						);
 					})}

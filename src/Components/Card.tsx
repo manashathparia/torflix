@@ -28,6 +28,7 @@ const useStyles = makeStyles((theme) => ({
 				transform: "scale(1.2)",
 			},
 		},
+		WebkitTapHighlightColor: "transparent",
 	},
 	image: {
 		borderRadius: "4px",
@@ -58,6 +59,7 @@ interface CardProps {
 	slug: string;
 	favorites: Array<string>;
 	addFavorite: Function;
+	type: "movie" | "show";
 }
 
 export default function Card({
@@ -65,6 +67,7 @@ export default function Card({
 	title,
 	rating,
 	slug,
+	type,
 	favorites,
 	addFavorite,
 }: CardProps) {
@@ -77,7 +80,7 @@ export default function Card({
 			>
 				{favorites.includes(slug) ? <Favorite /> : <FavoriteBorder />}
 			</IconButton>
-			<Link to={`/movie/${slug}`}>
+			<Link to={`/${type}/${slug}`}>
 				<img
 					className={`${classes.height} ${classes.image}`}
 					src={image}

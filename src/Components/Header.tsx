@@ -10,6 +10,7 @@ import SearchIcon from "../icons/search";
 import MenuIcon from "@material-ui/icons/Menu";
 import { Link } from "react-router-dom";
 import Menu from "./Menu";
+import BackIcon from "../icons/BackIcon";
 
 const useStyles = makeStyles((theme) => ({
 	root: {
@@ -39,6 +40,13 @@ const useStyles = makeStyles((theme) => ({
 			paddingLeft: "100px",
 			paddingRight: "100px",
 		},
+	},
+	menuAlt: {
+		background:
+			"linear-gradient(to bottom, #1c1b1bd6 0%, rgb(34 31 31 / 0%) 100%) !important",
+		position: "absolute",
+		zIndex: 1,
+		width: "100%",
 	},
 	menuButton: {
 		padding: "5px",
@@ -190,3 +198,15 @@ export default function Header() {
 		</>
 	);
 }
+export const HeaderAlt = ({ history }: any) => {
+	const classes = useStyles();
+	return (
+		<div className={classes.root}>
+			<div className={`${classes.appBar} ${classes.menuAlt}`}>
+				<span onClick={() => history.goBack()}>
+					<BackIcon style={{ fontSize: 37, padding: 10 }} />
+				</span>
+			</div>
+		</div>
+	);
+};
