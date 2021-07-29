@@ -32,10 +32,10 @@ const useStyles = makeStyles((theme) => ({
 	appBar: {
 		boxShadow: "none",
 		position: "relative",
-		background: "#181b20",
-		// background:
-		// 	"linear-gradient(to bottom, #1c1b1bd6 0%, rgb(34 31 31 / 0%) 100%)",
-		// top: 0,
+		// bacskground: "#181b20",
+		background:
+			"linear-gradient(to bottom, #191c21c7 0%, rgb(34 31 31 / 0%) 100%) !important",
+		top: 0,
 		[theme.breakpoints.up("sm")]: {
 			paddingLeft: "100px",
 			paddingRight: "100px",
@@ -92,6 +92,8 @@ const useStyles = makeStyles((theme) => ({
 		width: "100%",
 	},
 	buttonsContainer: {
+		color: "inherit",
+		textDecoration: "none",
 		[theme.breakpoints.down("sm")]: {
 			display: "none",
 		},
@@ -185,12 +187,12 @@ export default function Header() {
 								/>
 							</div>
 						</div>
-						<div className={classes.buttonsContainer}>
+						<Link to="/movies" className={classes.buttonsContainer}>
 							<Button color="inherit">Movies</Button>
-						</div>
-						<div className={classes.buttonsContainer}>
+						</Link>
+						<Link to="/shows" className={classes.buttonsContainer}>
 							<Button color="inherit">Shows</Button>
-						</div>
+						</Link>
 					</Toolbar>
 				</AppBar>
 			</div>

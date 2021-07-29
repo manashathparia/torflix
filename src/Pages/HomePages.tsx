@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, Route, Switch } from "react-router-dom";
 import makeStyles from "@material-ui/core/styles/makeStyles";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 import MoviesPage from "./MoviesPage";
 import ShowsPage from "./ShowsPage";
 import Header from "../Components/Header";
@@ -24,33 +25,36 @@ export default function HomePage({ location }: any) {
 		updateLoc(location.pathname.split("/")[1]);
 	}, []);
 
+	const isMobile = useMediaQuery("(max-width:600px)");
 	const classes = styles();
 	return (
 		<>
 			<Header />
-			<div className={classes.root}>
-				<Link
-					onClick={() => updateLoc("movies")}
-					to="/movies"
-					className={classes.span}
-					style={{
-						color: currentLoc === "movies" ? "#cd2c2c" : "inherit",
-					}}
-				>
-					Movies
-				</Link>
-				<Link
-					onClick={() => updateLoc("shows")}
-					to="/shows"
-					className={classes.span}
-					style={{
-						color: currentLoc === "shows" ? "#cd2c2c" : "inherit",
-					}}
-				>
-					Shows
-				</Link>
-				<span>Favorites</span>
-			</div>
+			{isMobile && (
+				<div className={classes.root}>
+					<Link
+						onClick={() => updateLoc("movies")}
+						to="/movies"
+						className={classes.span}
+						style={{
+							color: currentLoc === "movies" ? "#cd2c2c" : "inherit",
+						}}
+					>
+						Movies
+					</Link>
+					<Link
+						onClick={() => updateLoc("shows")}
+						to="/shows"
+						className={classes.span}
+						style={{
+							color: currentLoc === "shows" ? "#cd2c2c" : "inherit",
+						}}
+					>
+						Shows
+					</Link>
+					<span>Favorites</span>
+				</div>
+			)}
 			<Switch>
 				<Route path="/movies" component={MoviesPage} exact />
 				<Route path="/shows" component={ShowsPage} exact />

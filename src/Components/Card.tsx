@@ -5,6 +5,7 @@ import Star from "@material-ui/icons/Star";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { Link } from "react-router-dom";
 import IconButton from "@material-ui/core/IconButton";
+import LazyLoad from "react-lazyload";
 
 const useStyles = makeStyles((theme) => ({
 	height: {
@@ -81,11 +82,13 @@ export default function Card({
 				{favorites.includes(slug) ? <Favorite /> : <FavoriteBorder />}
 			</IconButton>
 			<Link to={`/${type}/${slug}`}>
-				<img
-					className={`${classes.height} ${classes.image}`}
-					src={image}
-					alt=""
-				/>
+				<LazyLoad offset={100} unmountIfInvisible={true}>
+					<img
+						className={`${classes.height} ${classes.image}`}
+						src={image}
+						alt=""
+					/>
+				</LazyLoad>
 			</Link>
 
 			<span className={classes.rating}>

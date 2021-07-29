@@ -15,6 +15,7 @@ import FavoriteBorder from "@material-ui/icons/FavoriteBorder";
 import PlayArrowRounded from "@material-ui/icons/PlayArrowRounded";
 import Favorite from "@material-ui/icons/Favorite";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
+import Select from "@material-ui/core/Select";
 import Webtorrent from "webtorrent";
 import prettierBytes from "prettier-bytes";
 import { RootState } from "../Redux/Reducers";
@@ -26,12 +27,15 @@ import TorrentDetails from "../Components/TorrentDetails";
 import ArrowBack from "@material-ui/icons/ArrowBack";
 import { saveToRecentlyWatched } from "../helpers";
 import Header, { HeaderAlt } from "../Components/Header";
+import { ShowSeasonDetails } from "../Components/ShowDetails";
+import { MenuItem } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
-		background: "rgb(36 35 35)",
+		background: "#181b20",
 		boxShadow: "none",
-		padding: "75px 40px",
+		paddingTop: 30,
+		padding: 90,
 		[theme.breakpoints.down("sm")]: {
 			padding: "0",
 		},
@@ -62,9 +66,10 @@ const useStyles = makeStyles((theme) => ({
 	},
 	banner: {
 		height: "550px",
-		position: "fixed",
+		borderRadius: 15,
 		[theme.breakpoints.down("sm")]: {
-			position: "relative",
+			borderRadius: 0,
+			position: "fixed",
 			height: "auto",
 			width: "100%",
 		},
@@ -100,6 +105,12 @@ const useStyles = makeStyles((theme) => ({
 			background: "rgb(36, 35, 35)",
 		},
 	},
+	imageGrid: {
+		[theme.breakpoints.up("sm")]: {
+			textAlign: "center",
+			paddingTop: 40,
+		},
+	},
 	detailsGrid: {
 		padding: 20,
 		// borderRadius: 40,
@@ -116,6 +127,7 @@ const useStyles = makeStyles((theme) => ({
 		},
 	},
 	videoPlay: {
+		width: "100%",
 		position: "absolute",
 		margin: "auto",
 		top: 0,
@@ -171,9 +183,11 @@ export default function CurrentlyViewing({
 	type: "movie" | "show";
 }) {
 	const [quality, updateQuality] = useState("1080p");
+	const [availableQualities, updateAvailableQualities] = useState<string[]>([]);
 	const [movie, updateMovie] = useState<Movie | Show | null>(null);
 	const [isMovie, toggleIsMovie] = useState(false);
 	const [readyToStream, handleReadyToStream] = useState(false);
+	const [selectedSeason, updateSelectedSeason] = useState(1);
 	const [loading, toggleLoading] = useState(false);
 	const [torrentInfo, updateTorrentInfo] = useState({
 		download: 0,
@@ -243,8 +257,18 @@ export default function CurrentlyViewing({
 	);
 
 	useEffect(() => {
+		if (movie && isMovie) {
+			const _qualities = Object.keys((movie as Movie).torrents.en).sort(
+				(a, b) => {
+					return Number(a.match(/(\d+)/g)![0]) - Number(b.match(/(\d+)/g)![0]);
+				}
+			);
+			updateAvailableQualities(_qualities);
+		}
+	}, [movie]);
+
+	useEffect(() => {
 		if (resume) {
-			console.log(isMobile);
 			isMobile && togglePlayOverlay(true);
 			handleReadyToStream(true);
 		}
@@ -348,8 +372,8 @@ export default function CurrentlyViewing({
 					}}
 				>
 					<Grid container>
-						<Grid item sm={12} lg={4}>
-							<div className="aa" style={{ position: "fixed" }}>
+						<Grid className={classes.imageGrid} item sm={12} lg={4}>
+							<div className="aa">
 								<img
 									className={classes.banner}
 									src={movie.images.banner.replace("http", "https")}
@@ -429,7 +453,7 @@ export default function CurrentlyViewing({
 										{movie.synopsis}
 									</Typography>
 									<Divider
-										style={{ backgroundColor: "#313030", margin: "10px 0" }}
+										style={{ backgroundColor: "initial", margin: "10px 0" }}
 									/>
 									<Grid container>
 										<Grid item={true} lg={6} xs={12} sm={12}>
@@ -452,29 +476,21 @@ export default function CurrentlyViewing({
 													</div>
 
 													<div style={{ padding: "10px 0" }}>
-														<span
-															className={`${classes.qualityButtons} ${
-																quality === "1080p"
-																	? classes.qualityButtonSelected
-																	: ""
-															}`}
-															onClick={() => {
-																handleReadyToStream(false);
-																updateQuality("1080p");
-															}}
-														>
-															1080p
-														</span>
-														<span
-															className={`${classes.qualityButtons} ${
-																quality === "720p"
-																	? classes.qualityButtonSelected
-																	: ""
-															}`}
-															onClick={() => updateQuality("720p")}
-														>
-															720p
-														</span>
+														{availableQualities.map((_quality) => (
+															<span
+																className={`${classes.qualityButtons} ${
+																	quality === _quality
+																		? classes.qualityButtonSelected
+																		: ""
+																}`}
+																onClick={() => {
+																	handleReadyToStream(false);
+																	updateQuality(_quality);
+																}}
+															>
+																{_quality}
+															</span>
+														))}
 													</div>
 												</>
 											) : null}
@@ -513,7 +529,7 @@ export default function CurrentlyViewing({
 									</Grid>
 									{!isMobile && (
 										<Divider
-											style={{ backgroundColor: "#313030", margin: "10px 0" }}
+											style={{ backgroundColor: "initial", margin: "10px 0" }}
 										/>
 									)}
 									{isMovie ? (
@@ -533,16 +549,11 @@ export default function CurrentlyViewing({
 											<Typography style={{ fontSize: 23 }} variant="h6">
 												Seasons
 											</Typography>
-											{Object.keys((movie as Show).seasons).map((key) => (
-												<div>
-													<Typography
-														style={{ fontSize: 18 }}
-														variant="caption"
-													>
-														Season {key}
-													</Typography>
-												</div>
-											))}
+											<div>
+												<ShowSeasonDetails
+													seasons={Object.keys((movie as Show).seasons)}
+												/>
+											</div>
 										</div>
 									)}
 								</>
@@ -574,24 +585,48 @@ export default function CurrentlyViewing({
 											</>
 										)}
 									</div>
-									<h3>Select Quality</h3>
-									<div>
-										{isMovie
-											? Object.entries(
-													(movie as Movie).torrents.en
-											  ).map(([key, torrent]: any) => (
-													<TorrentDetails
-														onClick={() => updateQuality(key)}
-														seeds={torrent.seed}
-														peers={torrent.peer}
-														size={torrent.filesize}
-														res={key}
-														selected={quality}
-														downloading={Boolean(client.get(torrent.url))}
-													/>
-											  ))
-											: null}
-									</div>
+									{isMovie ? (
+										<>
+											<h3>Select Quality</h3>
+											<div>
+												{Object.entries((movie as Movie).torrents.en).map(
+													([key, torrent]: any) => (
+														<TorrentDetails
+															onClick={() => updateQuality(key)}
+															seeds={torrent.seed}
+															peers={torrent.peer}
+															size={torrent.filesize}
+															res={key}
+															selected={quality}
+															downloading={Boolean(client.get(torrent.url))}
+														/>
+													)
+												)}
+											</div>
+										</>
+									) : (
+										<div style={{ marginTop: 20 }}>
+											<Select
+												native
+												style={{ fontSize: 19 }}
+												value={selectedSeason}
+												onChange={(e) =>
+													updateSelectedSeason(Number(e.target.value))
+												}
+											>
+												{Object.keys((movie as Show).seasons).map((season) => (
+													<option value={season}>Season {season}</option>
+												))}
+											</Select>
+											<div style={{ maxHeight: 500, overflowY: "scroll" }}>
+												{(movie as Show).seasons[selectedSeason].map(
+													(episode: any) => (
+														<div style={{ height: 100 }}>{episode.title}</div>
+													)
+												)}
+											</div>
+										</div>
+									)}
 									<div style={{ height: "calc(100vh - 450px)" }}></div>
 								</>
 							)}
