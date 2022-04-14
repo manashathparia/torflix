@@ -147,15 +147,9 @@ declare global {
 declare module "prettier-bytes" {}
 
 const announceList: any = [
-	["udp://tracker.openbittorrent.com:80"],
-	["udp://tracker.internetwarriors.net:1337"],
-	["udp://tracker.leechers-paradise.org:6969"],
-	["udp://tracker.coppersurfer.tk:6969"],
-	["udp://exodus.desync.com:6969"],
-	["wss://tracker.webtorrent.io"],
-	["wss://tracker.btorrent.xyz"],
 	["wss://tracker.openwebtorrent.com"],
-	["wss://tracker.fastcast.nz"],
+	// ["wss://tracker.webtorrent.io"],
+	["wss://tracker.btorrent.xyz"],
 ];
 
 window.WEBTORRENT_ANNOUNCE = announceList
@@ -232,7 +226,7 @@ export default function CurrentlyViewing({
 		async function fetchMovie() {
 			const data = await (
 				await fetch(
-					`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://popcorn-ru.tk/${type}/${match.params.id}`
+					`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://popcorn-time.ga/${type}/${match.params.id}`
 				)
 			).json();
 			console.log(data);
@@ -301,6 +295,8 @@ export default function CurrentlyViewing({
 		const video = document.getElementById("video") as HTMLMediaElement;
 		video?.play();
 		video.currentTime = watchingRightNow.position || 0;
+
+		console.log(stream);
 		torrent.on("download", () => {
 			updateTorrentInfo({
 				download: torrent.downloadSpeed,
@@ -377,7 +373,6 @@ export default function CurrentlyViewing({
 								<img
 									className={classes.banner}
 									src={movie.images.banner.replace("http", "https")}
-									alt=""
 								/>
 							</div>
 						</Grid>
@@ -460,19 +455,20 @@ export default function CurrentlyViewing({
 											{!isMobile ? (
 												<>
 													<div style={{ padding: "0 10px 10px 0" }}>
-														{isMovie ? (
-															<Video
-																handleStream={() => {
-																	stream(
-																		(movie as Movie).torrents.en[quality].url
-																	);
-																}}
-																readyToStream={readyToStream}
-																loading={loading}
-																image={movie.images.fanart}
-																handleVideoOnMount={handleVideoOnMount}
-															/>
-														) : null}
+														<Video
+															handleStream={() => {
+																stream(
+																	isMovie
+																		? (movie as Movie).torrents.en[quality].url
+																		: (movie as Show).seasons[selectedSeason][0]
+																				.torrents[quality].url
+																);
+															}}
+															readyToStream={readyToStream}
+															loading={loading}
+															image={movie.images.fanart}
+															handleVideoOnMount={handleVideoOnMount}
+														/>
 													</div>
 
 													<div style={{ padding: "10px 0" }}>

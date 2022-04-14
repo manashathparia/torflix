@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, Route, Switch } from "react-router-dom";
+import { Route, Switch } from "react-router-dom";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import MoviesPage from "./MoviesPage";
@@ -30,7 +30,7 @@ export default function HomePage({ location }: any) {
 	return (
 		<>
 			<Header />
-			{isMobile && (
+			{/* {isMobile && (
 				<div className={classes.root}>
 					<Link
 						onClick={() => updateLoc("movies")}
@@ -54,7 +54,7 @@ export default function HomePage({ location }: any) {
 					</Link>
 					<span>Favorites</span>
 				</div>
-			)}
+			)} */}
 			<Switch>
 				<Route path="/movies" component={MoviesPage} exact />
 				<Route path="/shows" component={ShowsPage} exact />

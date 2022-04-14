@@ -1,7 +1,6 @@
 import React from "react";
 import { Switch, Route, RouteComponentProps, Redirect } from "react-router-dom";
-import MoviesPage from "./MoviesPage";
-import ShowsPage from "./ShowsPage";
+import SearchPage from "./Search";
 import CurrentlyViewing from "./CurrentlyViewing";
 import HomePage from "./HomePages";
 
@@ -28,6 +27,8 @@ export default function Pages({ client }: any) {
 				)}
 				exact
 			/>
+			<Route path="/search/:id" component={SearchPage} exact />
+
 			<HomePage />
 		</Switch>
 	);

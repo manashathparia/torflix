@@ -3,14 +3,15 @@ import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
-import Button from "@material-ui/core/Button";
 import InputBase from "@material-ui/core/InputBase";
 import IconButton from "@material-ui/core/IconButton";
 import SearchIcon from "../icons/search";
-import MenuIcon from "@material-ui/icons/Menu";
+import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import Menu from "./Menu";
 import BackIcon from "../icons/BackIcon";
+import CloseIcon from "../icons/closeIcon";
 
 const useStyles = makeStyles((theme) => ({
 	root: {
@@ -139,10 +140,18 @@ const useStyles = makeStyles((theme) => ({
 export default function Header() {
 	const classes = useStyles();
 	const [menuOpen, toggleMenu] = React.useState(false);
+	const [searchOpen, toggleSearch] = React.useState(false);
+	const [searchVal, setSearchVal] = React.useState("");
+	const [currentCategory, updateCategory] = React.useState("movies");
 	const [scrollState, updateScrollState] = React.useState({
 		prevScrollpos: window.pageYOffset,
 		visible: true,
 	});
+	const [searchLoading, toggleSearchLoading] = React.useState(false);
+
+	const history = useHistory();
+
+	const dispatch = useDispatch();
 
 	const handleScroll = () => {
 		const { prevScrollpos } = scrollState;
@@ -161,38 +170,87 @@ export default function Header() {
 		return () => window.removeEventListener("scroll", handleScroll);
 	});
 
+	React.useEffect(() => {
+		const cat = document.location.pathname.split("/")[1];
+		console.log(cat);
+		if (cat.includes("movie")) {
+			updateCategory("Movies");
+		} else {
+			updateCategory("Shows");
+		}
+	}, []);
+
+	const onSearch = (e: React.KeyboardEvent<HTMLDivElement>) => {
+		if (e.key === "Enter") {
+			history.push(`/search/${searchVal}`);
+		}
+	};
+
+	const InputComp = () => (
+		<InputBase
+			placeholder={`Search for ${currentCategory}`}
+			classes={{
+				root: classes.inputRoot,
+				input: classes.inputInput,
+			}}
+			inputProps={{ "aria-label": "search" }}
+			onKeyPress={onSearch}
+			onChange={(e) => setSearchVal(e.target.value)}
+			value={searchVal}
+		/>
+	);
+
 	return (
 		<>
 			<div className={classes.root}>
 				<AppBar position="static" className={classes.appBar} color="primary">
 					<Toolbar>
-						<Link to="/" className={classes.title}>
-							<Typography variant="h6">TORFLIX</Typography>
-						</Link>
-						<IconButton className={classes.mobileSearch}>
-							<SearchIcon />
-						</IconButton>
-						<div className={classes.search}>
-							<div>
-								<div className={classes.searchIcon}>
+						{!searchOpen ? (
+							<>
+								{" "}
+								<Link to="/" className={classes.title}>
+									<Typography variant="h6">TORFLIX</Typography>
+								</Link>
+								<IconButton
+									onClick={() => toggleSearch(!searchOpen)}
+									className={classes.mobileSearch}
+								>
 									<SearchIcon />
+								</IconButton>
+								<div className={classes.search}>
+									<div>
+										<div className={classes.searchIcon}>
+											<SearchIcon />
+										</div>
+										<InputComp />
+									</div>
 								</div>
-								<InputBase
-									placeholder="Search for Movies or Shows"
-									classes={{
-										root: classes.inputRoot,
-										input: classes.inputInput,
-									}}
-									inputProps={{ "aria-label": "search" }}
-								/>
-							</div>
-						</div>
-						<Link to="/movies" className={classes.buttonsContainer}>
-							<Button color="inherit">Movies</Button>
-						</Link>
-						<Link to="/shows" className={classes.buttonsContainer}>
-							<Button color="inherit">Shows</Button>
-						</Link>
+								{/* <Link
+									onClick={() => updateCategory("Movies")}
+									to="/movies"
+									className={classes.buttonsContainer}
+								>
+									<Button color="inherit">Movies</Button>
+								</Link>
+								<Link
+									onClick={() => updateCategory("Shows")}
+									to="/shows"
+									className={classes.buttonsContainer}
+								>
+									<Button color="inherit">Shows</Button>
+								</Link> */}
+							</>
+						) : (
+							<>
+								<InputComp />
+								<IconButton
+									onClick={() => toggleSearch(!searchOpen)}
+									style={{ color: "white" }}
+								>
+									<CloseIcon />
+								</IconButton>
+							</>
+						)}
 					</Toolbar>
 				</AppBar>
 			</div>
