@@ -2,32 +2,28 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import InfiniteScroll from "react-infinite-scroll-component";
 import Loader from "@material-ui/core/CircularProgress";
-import {
-	getMovies,
-	searchMovies,
-	handleFavMovies,
-} from "../Redux/Actions/contentActions";
+import { getShows, handleFavMovies } from "../Redux/Actions/contentActions";
 import { RootState } from "../Redux/Reducers";
 import Card from "../Components/Card";
-import { NEXT_PAGE, NEXT_SEARCH_PAGE } from "../Redux/Reducers/types";
+import { NEXT_PAGE } from "../Redux/Reducers/types";
 import ResumeVideo from "../Components/ResumeVideo";
 
-export default function MoviesPage({ history }: any) {
+export default function ShowssPage({ history }: any) {
 	const dispatch = useDispatch();
 	const {
-		movies: { moviesList: movies, page, favorites },
+		shows: { showsList: shows, page, favorites },
 	} = useSelector((state: RootState) => state);
 
 	useEffect(() => {
-		if (movies.length > 0) return;
-		dispatch(getMovies(1));
-	}, [dispatch, movies]);
+		if (shows.length > 0) return;
+		dispatch(getShows(1));
+	}, [dispatch, shows]);
 
 	const nextPage = () => dispatch({ type: NEXT_PAGE });
 
 	const loadMore = () => {
 		nextPage();
-		dispatch(getMovies(page + 1));
+		dispatch(getShows(page + 1));
 	};
 
 	const updateFavorites = (id: string) => dispatch(handleFavMovies(id));
@@ -45,9 +41,9 @@ export default function MoviesPage({ history }: any) {
 						</div>
 					}
 					hasMore={true}
-					dataLength={movies.length}
+					dataLength={shows.length}
 				>
-					{movies.map((movie: any) => {
+					{shows.map((movie: any) => {
 						return (
 							<Card
 								favorites={favorites}
@@ -57,7 +53,7 @@ export default function MoviesPage({ history }: any) {
 								title={movie.title}
 								key={movie._id}
 								image={movie.images.poster.replace("http", "https")}
-								type="movie"
+								type="show"
 							/>
 						);
 					})}

@@ -3,19 +3,21 @@ import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
-import Button from "@material-ui/core/Button";
 import InputBase from "@material-ui/core/InputBase";
 import IconButton from "@material-ui/core/IconButton";
-import SearchIcon from "@material-ui/icons/Search";
-import MenuIcon from "@material-ui/icons/Menu";
+import SearchIcon from "../icons/search";
+import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import Menu from "./Menu";
+import BackIcon from "../icons/BackIcon";
+import CloseIcon from "../icons/closeIcon";
 
 const useStyles = makeStyles((theme) => ({
 	root: {
 		flexGrow: 1,
-		position: "sticky",
-		top: 0,
+		// position: "sticky",
+		// top: 0,
 		zIndex: 9,
 		[theme.breakpoints.up("sm")]: {
 			zIndex: 999,
@@ -30,14 +32,22 @@ const useStyles = makeStyles((theme) => ({
 	},
 	appBar: {
 		boxShadow: "none",
-		position: "absolute",
+		position: "relative",
+		// bacskground: "#181b20",
 		background:
-			"linear-gradient(to bottom, #1c1b1bd6 0%, rgb(34 31 31 / 0%) 100%)",
+			"linear-gradient(to bottom, #191c21c7 0%, rgb(34 31 31 / 0%) 100%) !important",
 		top: 0,
 		[theme.breakpoints.up("sm")]: {
 			paddingLeft: "100px",
 			paddingRight: "100px",
 		},
+	},
+	menuAlt: {
+		background:
+			"linear-gradient(to bottom, #1c1b1bd6 0%, rgb(34 31 31 / 0%) 100%) !important",
+		position: "absolute",
+		zIndex: 1,
+		width: "100%",
 	},
 	menuButton: {
 		padding: "5px",
@@ -83,6 +93,8 @@ const useStyles = makeStyles((theme) => ({
 		width: "100%",
 	},
 	buttonsContainer: {
+		color: "inherit",
+		textDecoration: "none",
 		[theme.breakpoints.down("sm")]: {
 			display: "none",
 		},
@@ -128,10 +140,18 @@ const useStyles = makeStyles((theme) => ({
 export default function Header() {
 	const classes = useStyles();
 	const [menuOpen, toggleMenu] = React.useState(false);
+	const [searchOpen, toggleSearch] = React.useState(false);
+	const [searchVal, setSearchVal] = React.useState("");
+	const [currentCategory, updateCategory] = React.useState("movies");
 	const [scrollState, updateScrollState] = React.useState({
 		prevScrollpos: window.pageYOffset,
 		visible: true,
 	});
+	const [searchLoading, toggleSearchLoading] = React.useState(false);
+
+	const history = useHistory();
+
+	const dispatch = useDispatch();
 
 	const handleScroll = () => {
 		const { prevScrollpos } = scrollState;
@@ -150,48 +170,87 @@ export default function Header() {
 		return () => window.removeEventListener("scroll", handleScroll);
 	});
 
+	React.useEffect(() => {
+		const cat = document.location.pathname.split("/")[1];
+		console.log(cat);
+		if (cat.includes("movie")) {
+			updateCategory("Movies");
+		} else {
+			updateCategory("Shows");
+		}
+	}, []);
+
+	const onSearch = (e: React.KeyboardEvent<HTMLDivElement>) => {
+		if (e.key === "Enter") {
+			history.push(`/search/${searchVal}`);
+		}
+	};
+
+	const InputComp = () => (
+		<InputBase
+			placeholder={`Search for ${currentCategory}`}
+			classes={{
+				root: classes.inputRoot,
+				input: classes.inputInput,
+			}}
+			inputProps={{ "aria-label": "search" }}
+			onKeyPress={onSearch}
+			onChange={(e) => setSearchVal(e.target.value)}
+			value={searchVal}
+		/>
+	);
+
 	return (
 		<>
 			<div className={classes.root}>
 				<AppBar position="static" className={classes.appBar} color="primary">
 					<Toolbar>
-						<IconButton
-							edge="start"
-							className={classes.menuButton}
-							color="inherit"
-							aria-label="menu"
-							disableRipple
-							onClick={() => toggleMenu(!menuOpen)}
-						>
-							<MenuIcon />
-						</IconButton>
-						<Link to="/" className={classes.title}>
-							<Typography variant="h6">TORFLIX</Typography>
-						</Link>
-						<IconButton className={classes.mobileSearch}>
-							<SearchIcon />
-						</IconButton>
-						<div className={classes.search}>
-							<div>
-								<div className={classes.searchIcon}>
+						{!searchOpen ? (
+							<>
+								{" "}
+								<Link to="/" className={classes.title}>
+									<Typography variant="h6">TORFLIX</Typography>
+								</Link>
+								<IconButton
+									onClick={() => toggleSearch(!searchOpen)}
+									className={classes.mobileSearch}
+								>
 									<SearchIcon />
+								</IconButton>
+								<div className={classes.search}>
+									<div>
+										<div className={classes.searchIcon}>
+											<SearchIcon />
+										</div>
+										<InputComp />
+									</div>
 								</div>
-								<InputBase
-									placeholder="Search for Movies or Shows"
-									classes={{
-										root: classes.inputRoot,
-										input: classes.inputInput,
-									}}
-									inputProps={{ "aria-label": "search" }}
-								/>
-							</div>
-						</div>
-						<div className={classes.buttonsContainer}>
-							<Button color="inherit">Movies</Button>
-						</div>
-						<div className={classes.buttonsContainer}>
-							<Button color="inherit">Shows</Button>
-						</div>
+								{/* <Link
+									onClick={() => updateCategory("Movies")}
+									to="/movies"
+									className={classes.buttonsContainer}
+								>
+									<Button color="inherit">Movies</Button>
+								</Link>
+								<Link
+									onClick={() => updateCategory("Shows")}
+									to="/shows"
+									className={classes.buttonsContainer}
+								>
+									<Button color="inherit">Shows</Button>
+								</Link> */}
+							</>
+						) : (
+							<>
+								<InputComp />
+								<IconButton
+									onClick={() => toggleSearch(!searchOpen)}
+									style={{ color: "white" }}
+								>
+									<CloseIcon />
+								</IconButton>
+							</>
+						)}
 					</Toolbar>
 				</AppBar>
 			</div>
@@ -199,3 +258,15 @@ export default function Header() {
 		</>
 	);
 }
+export const HeaderAlt = ({ history }: any) => {
+	const classes = useStyles();
+	return (
+		<div className={classes.root}>
+			<div className={`${classes.appBar} ${classes.menuAlt}`}>
+				<span onClick={() => history.goBack()}>
+					<BackIcon style={{ fontSize: 37, padding: 10 }} />
+				</span>
+			</div>
+		</div>
+	);
+};

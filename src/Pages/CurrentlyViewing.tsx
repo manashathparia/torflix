@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { RouteComponentProps } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { Movie } from "../Redux/Reducers/types";
+import { Movie, Show } from "../Redux/Reducers/types";
 import Paper from "@material-ui/core/Paper";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
@@ -15,6 +15,7 @@ import FavoriteBorder from "@material-ui/icons/FavoriteBorder";
 import PlayArrowRounded from "@material-ui/icons/PlayArrowRounded";
 import Favorite from "@material-ui/icons/Favorite";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
+import Select from "@material-ui/core/Select";
 import Webtorrent from "webtorrent";
 import prettierBytes from "prettier-bytes";
 import { RootState } from "../Redux/Reducers";
@@ -25,11 +26,16 @@ import {
 import TorrentDetails from "../Components/TorrentDetails";
 import ArrowBack from "@material-ui/icons/ArrowBack";
 import { saveToRecentlyWatched } from "../helpers";
+import Header, { HeaderAlt } from "../Components/Header";
+import { ShowSeasonDetails } from "../Components/ShowDetails";
+import { MenuItem } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
-		background: "rgb(36 35 35)",
-		padding: "75px 40px",
+		background: "#181b20",
+		boxShadow: "none",
+		paddingTop: 30,
+		padding: 90,
 		[theme.breakpoints.down("sm")]: {
 			padding: "0",
 		},
@@ -60,9 +66,10 @@ const useStyles = makeStyles((theme) => ({
 	},
 	banner: {
 		height: "550px",
-		position: "fixed",
+		borderRadius: 15,
 		[theme.breakpoints.down("sm")]: {
-			position: "relative",
+			borderRadius: 0,
+			position: "fixed",
 			height: "auto",
 			width: "100%",
 		},
@@ -87,7 +94,7 @@ const useStyles = makeStyles((theme) => ({
 		margin: "auto",
 		left: 0,
 		right: 0,
-		background: "rgb(36, 35, 35)",
+		background: "#181b20",
 		transition: "opacity 0.2s ease-in-out",
 		boxShadow: "0 2px 39px -3px rgb(0 0 0 / 12%)",
 		opacity: (props: any) => (props.show ? 1 : 0),
@@ -98,12 +105,18 @@ const useStyles = makeStyles((theme) => ({
 			background: "rgb(36, 35, 35)",
 		},
 	},
+	imageGrid: {
+		[theme.breakpoints.up("sm")]: {
+			textAlign: "center",
+			paddingTop: 40,
+		},
+	},
 	detailsGrid: {
 		padding: 20,
 		// borderRadius: 40,
-		borderRadius: (props: any) => (props.play ? 0 : 40),
+		borderRadius: (props: any) => (props.play ? 0 : "40px 40px 0 0"),
 		zIndex: 9,
-		background: "rgb(36 35 35)",
+		background: "#181b20",
 		position: "relative",
 		width: "100%",
 		// marginTop: (props: any) => (props.play ? 0 : 300),
@@ -114,6 +127,7 @@ const useStyles = makeStyles((theme) => ({
 		},
 	},
 	videoPlay: {
+		width: "100%",
 		position: "absolute",
 		margin: "auto",
 		top: 0,
@@ -133,15 +147,9 @@ declare global {
 declare module "prettier-bytes" {}
 
 const announceList: any = [
-	["udp://tracker.openbittorrent.com:80"],
-	["udp://tracker.internetwarriors.net:1337"],
-	["udp://tracker.leechers-paradise.org:6969"],
-	["udp://tracker.coppersurfer.tk:6969"],
-	["udp://exodus.desync.com:6969"],
-	["wss://tracker.webtorrent.io"],
-	["wss://tracker.btorrent.xyz"],
 	["wss://tracker.openwebtorrent.com"],
-	["wss://tracker.fastcast.nz"],
+	// ["wss://tracker.webtorrent.io"],
+	["wss://tracker.btorrent.xyz"],
 ];
 
 window.WEBTORRENT_ANNOUNCE = announceList
@@ -152,18 +160,6 @@ window.WEBTORRENT_ANNOUNCE = announceList
 		return url.indexOf("wss://") === 0 || url.indexOf("ws://") === 0;
 	});
 
-// window.WEBTORRENT_ANNOUNCE = [
-// 	["udp://tracker.openbittorrent.com:80"],
-// 	["udp://tracker.internetwarriors.net:1337"],
-// 	["udp://tracker.leechers-paradise.org:6969"],
-// 	["udp://tracker.coppersurfer.tk:6969"],
-// 	["udp://exodus.desync.com:6969"],
-// 	["wss://tracker.webtorrent.io"],
-// 	["wss://tracker.btorrent.xyz"],
-// 	// ["wss://tracker.openwebtorrent.com"],
-// 	["wss://tracker.fastcast.nz"],
-// ];
-
 function time_convert(num: number) {
 	const hours = Math.floor(num / 60);
 	const minutes = num % 60;
@@ -173,11 +169,19 @@ function time_convert(num: number) {
 export default function CurrentlyViewing({
 	match,
 	location,
+	type,
+	history,
 	client,
-}: RouteComponentProps<{ id: string }> & { client: Webtorrent.Instance }) {
+}: RouteComponentProps<{ id: string }> & {
+	client: Webtorrent.Instance;
+	type: "movie" | "show";
+}) {
 	const [quality, updateQuality] = useState("1080p");
-	const [movie, updateMovie] = useState<Movie | null>(null);
+	const [availableQualities, updateAvailableQualities] = useState<string[]>([]);
+	const [movie, updateMovie] = useState<Movie | Show | null>(null);
+	const [isMovie, toggleIsMovie] = useState(false);
 	const [readyToStream, handleReadyToStream] = useState(false);
+	const [selectedSeason, updateSelectedSeason] = useState(1);
 	const [loading, toggleLoading] = useState(false);
 	const [torrentInfo, updateTorrentInfo] = useState({
 		download: 0,
@@ -190,9 +194,14 @@ export default function CurrentlyViewing({
 	const [bottom, isBottom] = useState(true);
 	const [playOverlay, togglePlayOverlay] = useState(false);
 
-	const { movies, favorites, currentlyViewing: watchingRightNow } = useSelector(
-		(state: RootState) => state.content
-	);
+	const {
+		movies: {
+			moviesList: movies,
+			favorites,
+			currentlyViewing: watchingRightNow,
+		},
+		shows: { showsList: shows, currentlyViewing: watchingRightNow2 },
+	} = useSelector((state: RootState) => state);
 	const dispatch = useDispatch();
 
 	const isMobile = useMediaQuery("(max-width:600px)");
@@ -207,22 +216,33 @@ export default function CurrentlyViewing({
 		document.addEventListener("scroll", () =>
 			window.pageYOffset > 50 ? isBottom(false) : isBottom(true)
 		);
-		const movie = movies.filter((movie) => movie._id === match.params.id)[0];
+		toggleIsMovie(type === "movie");
+		const contentType = isMovie ? movies : shows;
+		const content = (contentType as any[]).filter(
+			// https://github.com/microsoft/TypeScript/issues/36390
+			(movie) => movie._id === match.params.id
+		)[0];
 
-		const fetchMovie = async () => {
-			const movie = await (
+		async function fetchMovie() {
+			const data = await (
 				await fetch(
-					`https://apitorflix.vercel.app/api/movies/${match.params.id}`
+					`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://popcorn-time.ga/${type}/${match.params.id}`
 				)
 			).json();
-			updateMovie(movie);
-		};
+			console.log(data);
+			if (type === "show" && data) {
+				data.seasons = sortAndMerge(data.episodes);
+				delete data.episodes;
+			}
+			updateMovie(data);
+		}
 
 		if (!movie) {
 			fetchMovie();
 			return;
 		}
 		updateMovie(movie);
+
 		// return () => client.destroy?.();
 	}, [match.params.id, movies]);
 
@@ -231,8 +251,18 @@ export default function CurrentlyViewing({
 	);
 
 	useEffect(() => {
+		if (movie && isMovie) {
+			const _qualities = Object.keys((movie as Movie).torrents.en).sort(
+				(a, b) => {
+					return Number(a.match(/(\d+)/g)![0]) - Number(b.match(/(\d+)/g)![0]);
+				}
+			);
+			updateAvailableQualities(_qualities);
+		}
+	}, [movie]);
+
+	useEffect(() => {
 		if (resume) {
-			console.log(isMobile);
 			isMobile && togglePlayOverlay(true);
 			handleReadyToStream(true);
 		}
@@ -265,6 +295,8 @@ export default function CurrentlyViewing({
 		const video = document.getElementById("video") as HTMLMediaElement;
 		video?.play();
 		video.currentTime = watchingRightNow.position || 0;
+
+		console.log(stream);
 		torrent.on("download", () => {
 			updateTorrentInfo({
 				download: torrent.downloadSpeed,
@@ -323,225 +355,286 @@ export default function CurrentlyViewing({
 		play: playOverlay,
 	});
 
-	return movie ? (
-		<Paper
-			className={classes.paper}
-			style={{
-				maxHeight: playOverlay ? "100vh" : "auto",
-				overflow: playOverlay ? "hidden" : "auto",
-			}}
-		>
-			<Grid container>
-				<Grid item sm={12} lg={4}>
-					<div className="aa" style={{ position: "fixed" }}>
-						<img
-							className={classes.banner}
-							src={movie.images.banner.replace("http", "https")}
-							alt=""
-						/>
-					</div>
-				</Grid>
-				<Grid
-					className={classes.detailsGrid}
-					style={{ transform: playOverlay ? "translateY(-300px)" : "none" }}
-					item
-					sm={12}
-					lg={8}
+	return (
+		<>
+			{isMobile ? <HeaderAlt history={history} /> : <Header />}
+
+			{movie ? (
+				<Paper
+					className={classes.paper}
+					style={{
+						maxHeight: playOverlay ? "100vh" : "auto",
+						overflow: playOverlay ? "hidden" : "auto",
+					}}
 				>
-					{isMobile && (
-						<IconButton
-							onClick={() => togglePlayOverlay(true)}
-							disabled={!bottom}
-							className={classes.play}
-						>
-							<PlayArrowRounded style={{ fontSize: 56, color: "white" }} />
-						</IconButton>
-					)}
-					{!playOverlay ? (
-						<>
-							<div style={{ display: "flex", marginTop: 10 }}>
-								<Typography
-									style={{ flexGrow: 1 }}
-									className={classes.padding}
-									variant="h4"
-								>
-									{movie.title}
-								</Typography>
-								<IconButton
-									color="primary"
-									onClick={() => toggleFav(movie._id)}
-
-									// className={classes.favIcon}
-								>
-									{favorites.includes(movie._id) ? (
-										<Favorite fontSize="large" />
-									) : (
-										<FavoriteBorder fontSize="large" />
-									)}
-								</IconButton>
-							</div>
-							{movie.genres.map((genre) => (
-								<Chip
-									variant="outlined"
-									key={genre}
-									style={{ margin: "2px" }}
-									color="secondary"
-									label={genre}
+					<Grid container>
+						<Grid className={classes.imageGrid} item sm={12} lg={4}>
+							<div className="aa">
+								<img
+									className={classes.banner}
+									src={movie.images.banner.replace("http", "https")}
 								/>
-							))}
-							<div className={classes.padding}>
-								{movie.year}, {time_convert(Number(movie.runtime))}
 							</div>
-							<div className={classes.padding}>
-								<Star
-									style={{
-										color: "rgb(245, 197, 24)",
-										fontSize: 20,
-										verticalAlign: "bottom",
-									}}
-								/>{" "}
-								{movie.rating.percentage / 10}
-							</div>
-							<Typography className={classes.padding} variant="body1">
-								{movie.synopsis}
-							</Typography>
-							<Divider
-								style={{ backgroundColor: "#313030", margin: "10px 0" }}
-							/>
-							<Grid container>
-								<Grid item={true} lg={6} xs={12} sm={12}>
-									{!isMobile ? (
-										<>
-											<div style={{ padding: "0 10px 10px 0" }}>
-												<Video
-													handleStream={() => {
-														stream(movie.torrents.en[quality].url);
-													}}
-													readyToStream={readyToStream}
-													loading={loading}
-													image={movie.images.fanart}
-													handleVideoOnMount={handleVideoOnMount}
-												/>
-											</div>
+						</Grid>
+						<Grid
+							className={classes.detailsGrid}
+							style={{ transform: playOverlay ? "translateY(-300px)" : "none" }}
+							item
+							sm={12}
+							lg={8}
+						>
+							{isMobile && (
+								<IconButton
+									onClick={() => togglePlayOverlay(true)}
+									disabled={!bottom}
+									className={classes.play}
+								>
+									<PlayArrowRounded style={{ fontSize: 56, color: "white" }} />
+								</IconButton>
+							)}
+							{!playOverlay ? (
+								<>
+									<div style={{ display: "flex", marginTop: 10 }}>
+										<Typography
+											style={{ flexGrow: 1 }}
+											className={classes.padding}
+											variant="h4"
+										>
+											{movie.title}
+										</Typography>
+										<IconButton
+											color="primary"
+											onClick={() => toggleFav(movie._id)}
 
-											<div style={{ padding: "10px 0" }}>
-												<span
-													className={`${classes.qualityButtons} ${
-														quality === "1080p"
-															? classes.qualityButtonSelected
-															: ""
-													}`}
-													onClick={() => {
-														handleReadyToStream(false);
-														updateQuality("1080p");
-													}}
-												>
-													1080p
-												</span>
-												<span
-													className={`${classes.qualityButtons} ${
-														quality === "720p"
-															? classes.qualityButtonSelected
-															: ""
-													}`}
-													onClick={() => updateQuality("720p")}
-												>
-													720p
-												</span>
-											</div>
-										</>
-									) : null}
-								</Grid>
-								<Grid item={true} lg={6} xs={12} sm={12}>
-									{!isMobile && (
-										<>
-											<Typography variant="h6">Torrent Details</Typography>
-											{loading || readyToStream ? (
+											// className={classes.favIcon}
+										>
+											{favorites.includes(movie._id) ? (
+												<Favorite fontSize="large" />
+											) : (
+												<FavoriteBorder fontSize="large" />
+											)}
+										</IconButton>
+									</div>
+									{movie.genres.map((genre) => (
+										<Chip
+											variant="outlined"
+											key={genre}
+											style={{ margin: "2px" }}
+											color="secondary"
+											label={genre}
+										/>
+									))}
+
+									<div className={classes.padding}>
+										{movie.year}
+										{isMovie ? (
+											<>, {time_convert(Number((movie as Movie).runtime))}</>
+										) : (
+											`, ${(movie as Show).num_seasons} Seasons`
+										)}
+									</div>
+
+									<div className={classes.padding}>
+										<Star
+											style={{
+												color: "rgb(245, 197, 24)",
+												fontSize: 20,
+												verticalAlign: "bottom",
+											}}
+										/>{" "}
+										{movie.rating.percentage / 10}
+									</div>
+									<Typography className={classes.padding} variant="body1">
+										{movie.synopsis}
+									</Typography>
+									<Divider
+										style={{ backgroundColor: "initial", margin: "10px 0" }}
+									/>
+									<Grid container>
+										<Grid item={true} lg={6} xs={12} sm={12}>
+											{!isMobile ? (
 												<>
-													<div>Status: {torrentInfo.status}</div>
-													<div>D:{prettierBytes(torrentInfo.download)}/s</div>
-													<div>U:{prettierBytes(torrentInfo.upload)}/s </div>
-													<div>
-														P:{(100 * torrentInfo.progress).toFixed(1)}%{" "}
+													<div style={{ padding: "0 10px 10px 0" }}>
+														<Video
+															handleStream={() => {
+																stream(
+																	isMovie
+																		? (movie as Movie).torrents.en[quality].url
+																		: (movie as Show).seasons[selectedSeason][0]
+																				.torrents[quality].url
+																);
+															}}
+															readyToStream={readyToStream}
+															loading={loading}
+															image={movie.images.fanart}
+															handleVideoOnMount={handleVideoOnMount}
+														/>
+													</div>
+
+													<div style={{ padding: "10px 0" }}>
+														{availableQualities.map((_quality) => (
+															<span
+																className={`${classes.qualityButtons} ${
+																	quality === _quality
+																		? classes.qualityButtonSelected
+																		: ""
+																}`}
+																onClick={() => {
+																	handleReadyToStream(false);
+																	updateQuality(_quality);
+																}}
+															>
+																{_quality}
+															</span>
+														))}
 													</div>
 												</>
-											) : (
+											) : null}
+										</Grid>
+										<Grid item={true} lg={6} xs={12} sm={12}>
+											{!isMobile && (
 												<>
-													Size: {movie.torrents.en[quality]?.filesize}
-													<div>Seeds: {movie.torrents.en[quality]?.seed}</div>
-													<div>Peers: {movie.torrents.en[quality]?.peer}</div>
+													<Typography variant="h6">Torrent Details</Typography>
+													{loading || readyToStream ? (
+														<>
+															<div>Status: {torrentInfo.status}</div>
+															<div>
+																D:{prettierBytes(torrentInfo.download)}/s
+															</div>
+															<div>
+																U:{prettierBytes(torrentInfo.upload)}/s{" "}
+															</div>
+															<div>
+																P:{(100 * torrentInfo.progress).toFixed(1)}%{" "}
+															</div>
+														</>
+													) : (
+														<>
+															{/* Size: {movie.torrents.en[quality]?.filesize}
+															<div>
+																Seeds: {movie.torrents.en[quality]?.seed}
+															</div>
+															<div>
+																Peers: {movie.torrents.en[quality]?.peer}
+															</div> */}
+														</>
+													)}
 												</>
 											)}
-										</>
+										</Grid>
+									</Grid>
+									{!isMobile && (
+										<Divider
+											style={{ backgroundColor: "initial", margin: "10px 0" }}
+										/>
 									)}
-								</Grid>
-							</Grid>
-							{!isMobile && (
-								<Divider
-									style={{ backgroundColor: "#313030", margin: "10px 0" }}
-								/>
+									{isMovie ? (
+										<div className={classes.padding}>
+											<Typography variant="h6">Trailer</Typography>
+
+											<iframe
+												className={classes.iframe}
+												src={`https://youtube.com/embed/${
+													(movie as Movie).trailer.split("=")[1]
+												}`}
+												title="trailer"
+											/>
+										</div>
+									) : (
+										<div>
+											<Typography style={{ fontSize: 23 }} variant="h6">
+												Seasons
+											</Typography>
+											<div>
+												<ShowSeasonDetails
+													seasons={Object.keys((movie as Show).seasons)}
+												/>
+											</div>
+										</div>
+									)}
+								</>
+							) : (
+								<>
+									<IconButton
+										color="secondary"
+										onClick={() => togglePlayOverlay(false)}
+									>
+										<ArrowBack fontSize="large" />
+									</IconButton>
+									<Video
+										handleStream={() => {
+											togglePlayOverlay(true);
+											stream((movie as Movie).torrents.en[quality].url);
+										}}
+										readyToStream={readyToStream}
+										loading={loading}
+										image={movie.images.fanart}
+										handleVideoOnMount={handleVideoOnMount}
+									/>
+									<div>
+										{(loading || readyToStream) && (
+											<>
+												<div>Status: {torrentInfo.status}</div>
+												<div>D:{prettierBytes(torrentInfo.download)}/s</div>
+												<div>U:{prettierBytes(torrentInfo.upload)}/s </div>
+												<div>P:{(100 * torrentInfo.progress).toFixed(1)}% </div>
+											</>
+										)}
+									</div>
+									{isMovie ? (
+										<>
+											<h3>Select Quality</h3>
+											<div>
+												{Object.entries((movie as Movie).torrents.en).map(
+													([key, torrent]: any) => (
+														<TorrentDetails
+															onClick={() => updateQuality(key)}
+															seeds={torrent.seed}
+															peers={torrent.peer}
+															size={torrent.filesize}
+															res={key}
+															selected={quality}
+															downloading={Boolean(client.get(torrent.url))}
+														/>
+													)
+												)}
+											</div>
+										</>
+									) : (
+										<div style={{ marginTop: 20 }}>
+											<Select
+												native
+												style={{ fontSize: 19 }}
+												value={selectedSeason}
+												onChange={(e) =>
+													updateSelectedSeason(Number(e.target.value))
+												}
+											>
+												{Object.keys((movie as Show).seasons).map((season) => (
+													<option value={season}>Season {season}</option>
+												))}
+											</Select>
+											<div style={{ maxHeight: 500, overflowY: "scroll" }}>
+												{(movie as Show).seasons[selectedSeason].map(
+													(episode: any) => (
+														<div style={{ height: 100 }}>{episode.title}</div>
+													)
+												)}
+											</div>
+										</div>
+									)}
+									<div style={{ height: "calc(100vh - 450px)" }}></div>
+								</>
 							)}
-							<div className={classes.padding}>
-								<Typography variant="h6">Trailer</Typography>
-								<iframe
-									className={classes.iframe}
-									src={`https://youtube.com/embed/${
-										movie.trailer.split("=")[1]
-									}`}
-									title="trailer"
-								/>
-							</div>
-						</>
-					) : (
-						<>
-							<IconButton
-								color="secondary"
-								onClick={() => togglePlayOverlay(false)}
-							>
-								<ArrowBack fontSize="large" />
-							</IconButton>
-							<Video
-								handleStream={() => {
-									togglePlayOverlay(true);
-									stream(movie.torrents.en[quality].url);
-								}}
-								readyToStream={readyToStream}
-								loading={loading}
-								image={movie.images.fanart}
-								handleVideoOnMount={handleVideoOnMount}
-							/>
-							<div>
-								{(loading || readyToStream) && (
-									<>
-										<div>Status: {torrentInfo.status}</div>
-										<div>D:{prettierBytes(torrentInfo.download)}/s</div>
-										<div>U:{prettierBytes(torrentInfo.upload)}/s </div>
-										<div>P:{(100 * torrentInfo.progress).toFixed(1)}% </div>
-									</>
-								)}
-							</div>
-							<h3>Available Files</h3>
-							{Object.entries(movie.torrents.en).map(([key, torrent]: any) => (
-								<TorrentDetails
-									onClick={() => updateQuality(key)}
-									seeds={torrent.seed}
-									peers={torrent.peer}
-									size={torrent.filesize}
-									res={key}
-									selected={quality}
-									downloading={Boolean(client.get(torrent.url))}
-								/>
-							))}
-							<div style={{ height: "calc(100vh - 450px)" }}></div>
-						</>
-					)}
-				</Grid>
-			</Grid>
-		</Paper>
-	) : (
-		<>
-			<br />
-			<CircularProgress style={{ display: "block", margin: "auto" }} />
+						</Grid>
+					</Grid>
+				</Paper>
+			) : (
+				<>
+					<br />
+					<CircularProgress style={{ display: "block", margin: "auto" }} />
+				</>
+			)}
 		</>
 	);
 }
@@ -581,4 +674,20 @@ const Video = ({
 			) : null}
 		</div>
 	);
+};
+
+const sortAndMerge = (a: any) => {
+	let aa: any = {};
+	for (let i = 0; i < a.length; i++) {
+		if (Object.keys(aa).includes(`${a[i].season}`)) {
+			aa[a[i].season] = [...aa[a[i].season], a[i]];
+		} else {
+			aa[a[i].season] = [a[i]];
+		}
+	}
+
+	Object.keys(aa).map((key) => {
+		aa[key] = aa[key].sort((a: any, b: any) => a.episode - b.episode);
+	});
+	return aa;
 };

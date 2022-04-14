@@ -5,14 +5,15 @@ import Star from "@material-ui/icons/Star";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { Link } from "react-router-dom";
 import IconButton from "@material-ui/core/IconButton";
+import LazyLoad from "react-lazyload";
 
 const useStyles = makeStyles((theme) => ({
 	height: {
 		height: 255,
 		width: 170,
-		[theme.breakpoints.down("sm")]: {
-			height: 240,
-			width: 155,
+		[theme.breakpoints.down("xs")]: {
+			height: 250,
+			width: "45%",
 		},
 	},
 	card: {
@@ -28,9 +29,11 @@ const useStyles = makeStyles((theme) => ({
 				transform: "scale(1.2)",
 			},
 		},
+		WebkitTapHighlightColor: "transparent",
 	},
 	image: {
 		borderRadius: "4px",
+		width: "100%",
 	},
 	loveIcon: {
 		position: "absolute",
@@ -57,6 +60,7 @@ interface CardProps {
 	slug: string;
 	favorites: Array<string>;
 	addFavorite: Function;
+	type: "movie" | "show";
 }
 
 export default function Card({
@@ -64,6 +68,7 @@ export default function Card({
 	title,
 	rating,
 	slug,
+	type,
 	favorites,
 	addFavorite,
 }: CardProps) {
@@ -76,12 +81,14 @@ export default function Card({
 			>
 				{favorites.includes(slug) ? <Favorite /> : <FavoriteBorder />}
 			</IconButton>
-			<Link to={`/movie/${slug}`}>
-				<img
-					className={`${classes.height} ${classes.image}`}
-					src={image}
-					alt=""
-				/>
+			<Link to={`/${type}/${slug}`}>
+				<LazyLoad offset={100} unmountIfInvisible={true}>
+					<img
+						className={`${classes.height} ${classes.image}`}
+						src={image}
+						alt=""
+					/>
+				</LazyLoad>
 			</Link>
 
 			<span className={classes.rating}>

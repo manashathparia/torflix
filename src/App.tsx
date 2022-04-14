@@ -19,7 +19,7 @@ function App() {
 			},
 			text: {
 				primary: "#dfd9d9",
-				secondary: "#221f1f",
+				secondary: "#b5b5b8",
 			},
 		},
 		typography: {
@@ -41,7 +41,6 @@ function App() {
 	return (
 		<div className="App" style={{ minHeight: "100vh" }}>
 			<MuiThemeProvider theme={theme}>
-				<Header />
 				<Content>
 					<Pages client={client} />
 				</Content>

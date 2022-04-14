@@ -12,7 +12,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ResumeVideo(props: any) {
 	const currentlyViewing = useSelector(
-		(state: RootState) => state.content.currentlyViewing
+		(state: RootState) => state.movies.currentlyViewing
 	);
 	const [show, toggleSnackbar] = useState(false);
 	useEffect(() => {
