@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 import InputBase from "@material-ui/core/InputBase";
 import IconButton from "@material-ui/core/IconButton";
 import SearchIcon from "../icons/search";
@@ -12,11 +12,12 @@ import { useHistory } from "react-router-dom";
 import Menu from "./Menu";
 import BackIcon from "../icons/BackIcon";
 import CloseIcon from "../icons/closeIcon";
+import Logo from "../icons/logo";
 
 const useStyles = makeStyles((theme) => ({
 	root: {
 		flexGrow: 1,
-		position: "sticky",
+		// position: "sticky",
 		top: 0,
 		zIndex: 9,
 		[theme.breakpoints.up("sm")]: {
@@ -196,16 +197,21 @@ export default function Header() {
 		/>
 	);
 
+	const isMobile = useMediaQuery("(max-width:600px)");
+
 	return (
 		<>
-			<div className={classes.root}>
+			<div
+				className={classes.root}
+				style={{ position: isMobile ? "sticky" : "relative" }}
+			>
 				<AppBar position="static" className={classes.appBar} color="primary">
 					<Toolbar>
 						{!searchOpen ? (
 							<>
 								{" "}
 								<Link to="/" className={classes.title}>
-									<Typography variant="h6">TORFLIX</Typography>
+									<Logo />
 								</Link>
 								<IconButton
 									onClick={() => toggleSearch(!searchOpen)}
