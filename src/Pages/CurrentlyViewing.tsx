@@ -16,6 +16,12 @@ import PlayArrowRounded from "@material-ui/icons/PlayArrowRounded";
 import Favorite from "@material-ui/icons/Favorite";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import Select from "@material-ui/core/Select";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Button from "@material-ui/core/Button";
 import Webtorrent from "webtorrent";
 import prettierBytes from "prettier-bytes";
 import { RootState } from "../Redux/Reducers";
@@ -28,7 +34,6 @@ import ArrowBack from "@material-ui/icons/ArrowBack";
 import { saveToRecentlyWatched } from "../helpers";
 import Header, { HeaderAlt } from "../Components/Header";
 import { ShowSeasonDetails } from "../Components/ShowDetails";
-import { MenuItem } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
@@ -136,6 +141,9 @@ const useStyles = makeStyles((theme) => ({
 		right: 0,
 		fontSize: 60,
 	},
+	dialog: {
+		background: "#181b20",
+	},
 }));
 
 declare global {
@@ -183,6 +191,8 @@ export default function CurrentlyViewing({
 	const [readyToStream, handleReadyToStream] = useState(false);
 	const [selectedSeason, updateSelectedSeason] = useState(1);
 	const [loading, toggleLoading] = useState(false);
+	const [unsupportedMedia, toggleUnsupportedMedia] = useState(false);
+	const [_torrent, updateTorrent] = useState<any>(null);
 	const [torrentInfo, updateTorrentInfo] = useState({
 		download: 0,
 		upload: 0,
@@ -246,6 +256,21 @@ export default function CurrentlyViewing({
 		// return () => client.destroy?.();
 	}, [match.params.id, movies]);
 
+	const handleBackButtonOnOverlay = (e: any) => {
+		e.preventDefault();
+		togglePlayOverlay(false);
+	};
+
+	useEffect(() => {
+		// disable back button
+		if (isMobile && playOverlay) {
+			window.history.pushState(null, null as any, window.location.pathname);
+			window.addEventListener("popstate", handleBackButtonOnOverlay);
+		}
+		return () =>
+			window.removeEventListener("popstate", handleBackButtonOnOverlay);
+	}, [playOverlay]);
+
 	const resume = JSON.parse(
 		location.search?.split("?")[1]?.split("=")[1] || "false"
 	);
@@ -272,6 +297,7 @@ export default function CurrentlyViewing({
 		if (resume) {
 			watchingRightNow.quality && updateQuality(watchingRightNow.quality);
 			const torrent = client.get(watchingRightNow.magnetURI || "");
+			updateTorrent(torrent);
 			console.log(torrent);
 			if (torrent) {
 				handleTorrent(torrent);
@@ -281,10 +307,18 @@ export default function CurrentlyViewing({
 		}
 	};
 
+	const checkIfMp4 = (files: Array<any>) => {
+		return files.filter((file) => file.name.endsWith(".mp4"));
+	};
+
 	function handleTorrent(torrent: Webtorrent.Torrent) {
+		if (checkIfMp4(torrent.files).length === 0) {
+			toggleUnsupportedMedia(true);
+		}
 		const file = torrent.files.find(function (file) {
 			return file.name.endsWith(".mp4");
 		});
+		console.log(torrent.files);
 		handleReadyToStream(true);
 		toggleLoading(false);
 		updateTorrentInfo({
@@ -293,7 +327,7 @@ export default function CurrentlyViewing({
 		});
 		file?.renderTo("video#video");
 		const video = document.getElementById("video") as HTMLMediaElement;
-		video?.play();
+		// video?.play();
 		video.currentTime = watchingRightNow.position || 0;
 
 		console.log(stream);
@@ -555,6 +589,29 @@ export default function CurrentlyViewing({
 								</>
 							) : (
 								<>
+									<Dialog
+										open={unsupportedMedia}
+										onClose={() => toggleUnsupportedMedia(!unsupportedMedia)}
+										aria-labelledby="alert-dialog-title"
+										aria-describedby="alert-dialog-description"
+										classes={{ paper: classes.dialog }}
+									>
+										<DialogTitle id="alert-dialog-title">
+											Unsupported Media
+										</DialogTitle>
+										<DialogContent>
+											<DialogContentText id="alert-dialog-description">
+												Due to the nature of the media (.mkv), this media is not
+												supported to be streamed and required to be downloading
+												before playing.
+											</DialogContentText>
+										</DialogContent>
+										<DialogActions>
+											<Button onClick={() => toggleUnsupportedMedia(false)}>
+												OK
+											</Button>
+										</DialogActions>
+									</Dialog>
 									<IconButton
 										color="secondary"
 										onClick={() => togglePlayOverlay(false)}
@@ -595,6 +652,7 @@ export default function CurrentlyViewing({
 															res={key}
 															selected={quality}
 															downloading={Boolean(client.get(torrent.url))}
+															onStop={() => torrent?.destroy()}
 														/>
 													)
 												)}

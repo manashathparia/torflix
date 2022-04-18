@@ -2,14 +2,10 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import InfiniteScroll from "react-infinite-scroll-component";
 import Loader from "@material-ui/core/CircularProgress";
-import {
-	getMovies,
-	searchMovies,
-	handleFavMovies,
-} from "../Redux/Actions/contentActions";
+import { getMovies, handleFavMovies } from "../Redux/Actions/contentActions";
 import { RootState } from "../Redux/Reducers";
 import Card from "../Components/Card";
-import { NEXT_PAGE, NEXT_SEARCH_PAGE } from "../Redux/Reducers/types";
+import { NEXT_PAGE } from "../Redux/Reducers/types";
 import ResumeVideo from "../Components/ResumeVideo";
 
 export default function MoviesPage({ history }: any) {

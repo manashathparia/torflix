@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -16,8 +16,8 @@ import CloseIcon from "../icons/closeIcon";
 const useStyles = makeStyles((theme) => ({
 	root: {
 		flexGrow: 1,
-		// position: "sticky",
-		// top: 0,
+		position: "sticky",
+		top: 0,
 		zIndex: 9,
 		[theme.breakpoints.up("sm")]: {
 			zIndex: 999,
@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
 	},
 	appBar: {
 		boxShadow: "none",
-		position: "relative",
+		// position: "fixed",
 		// bacskground: "#181b20",
 		background:
 			"linear-gradient(to bottom, #191c21c7 0%, rgb(34 31 31 / 0%) 100%) !important",
@@ -141,17 +141,13 @@ export default function Header() {
 	const classes = useStyles();
 	const [menuOpen, toggleMenu] = React.useState(false);
 	const [searchOpen, toggleSearch] = React.useState(false);
-	const [searchVal, setSearchVal] = React.useState("");
 	const [currentCategory, updateCategory] = React.useState("movies");
 	const [scrollState, updateScrollState] = React.useState({
 		prevScrollpos: window.pageYOffset,
 		visible: true,
 	});
-	const [searchLoading, toggleSearchLoading] = React.useState(false);
 
 	const history = useHistory();
-
-	const dispatch = useDispatch();
 
 	const handleScroll = () => {
 		const { prevScrollpos } = scrollState;
@@ -180,9 +176,9 @@ export default function Header() {
 		}
 	}, []);
 
-	const onSearch = (e: React.KeyboardEvent<HTMLDivElement>) => {
+	const onSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter") {
-			history.push(`/search/${searchVal}`);
+			history.push(`/search/${(e.target as HTMLTextAreaElement).value}`);
 		}
 	};
 
@@ -195,8 +191,8 @@ export default function Header() {
 			}}
 			inputProps={{ "aria-label": "search" }}
 			onKeyPress={onSearch}
-			onChange={(e) => setSearchVal(e.target.value)}
-			value={searchVal}
+			// onChange={(e) => setSearchVal(e.target.value)}
+			//			value={searchVal}
 		/>
 	);
 
@@ -254,6 +250,8 @@ export default function Header() {
 					</Toolbar>
 				</AppBar>
 			</div>
+			<div style={{ height: 20 }}></div>
+
 			<Menu onClose={() => toggleMenu(!menuOpen)} open={menuOpen} />
 		</>
 	);
