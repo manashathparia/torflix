@@ -20,7 +20,7 @@ export const getMovies =
 		try {
 			const movies: Array<Movie> = await (
 				await fetch(
-					`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://popcorn-time.ga/movies/${page}/?sort=trending`
+					`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://movies-api.gq/movies/${page}/?sort=trending`
 				)
 			).json();
 
@@ -44,7 +44,7 @@ export const searchMovies =
 		try {
 			let movies: Array<Movie> = await (
 				await fetch(
-					`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://popcorn-time.ga/movies/${page}/?keywords=${search}&showAll=1&order=-1`
+					`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://movies-api.gq/movies/${page}/?keywords=${search}&showAll=1&order=-1`
 				)
 			).json();
 			if (movies.length === 0) {
@@ -67,7 +67,7 @@ export const getShows =
 		try {
 			const shows: Array<Show> = await (
 				await fetch(
-					`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://popcorn-time.ga/shows/${page}/?sort=trending`
+					`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://movies-api.gq/shows/${page}/?sort=trending`
 				)
 			).json();
 
