@@ -236,7 +236,7 @@ export default function CurrentlyViewing({
 		async function fetchMovie() {
 			const data = await (
 				await fetch(
-					`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://movies-api.gq/${type}/${match.params.id}`
+					`https://torflix-jswtp874x-manashathparia.vercel.app/fetch/?url=https://yrkde.link/${type}/${match.params.id}`
 				)
 			).json();
 			console.log(data);
