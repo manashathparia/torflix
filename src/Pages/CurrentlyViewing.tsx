@@ -156,8 +156,12 @@ declare module "prettier-bytes" {}
 
 const announceList: any = [
 	["wss://tracker.openwebtorrent.com"],
-	// ["wss://tracker.webtorrent.io"],
+	["wss://tracker.webtorrent.io"],
 	["wss://tracker.btorrent.xyz"],
+	["wss://tracker.fastcast.nz"],
+	["wss://tracker.novage.com.ua"],
+	["wss://peertube2.cpy.re/tracker/socket"],
+	["wss://tracker.openwebtorrent.com"]
 ];
 
 window.WEBTORRENT_ANNOUNCE = announceList
